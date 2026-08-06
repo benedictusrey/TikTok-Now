@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About TikTok-Now</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: transparent;
+      color: #ffffff;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      user-select: none;
+    }
+    .card {
+      background: #0d0e15;
+      border: 1px solid #FF007F;
+      padding: 2.2rem 2rem;
+      border-radius: 28px;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(255, 0, 127, 0.3);
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #8e8ea0;
+      font-size: 26px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+      outline: none;
+    }
+    .close-btn:hover { color: #FF007F; }
+    .logo-box {
+      display: flex;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    h2 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      margin-bottom: 0.2rem;
+      background: linear-gradient(135deg, #00F2FE, #FF007F);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: #00F2FE;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .version {
+      color: #8e8ea0;
+      font-size: 0.78rem;
+    }
+    .cheatsheet {
+      font-size: 0.82rem;
+      line-height: 1.65;
+      text-align: left;
+      background: rgba(255,255,255,0.04);
+      padding: 0.9rem 1.2rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      width: 100%;
+    }
+    .cheatsheet-title {
+      color: #FF007F;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .author {
+      font-size: 0.78rem;
+      color: #8e8ea0;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #00F2FE, #FF007F);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 0.75rem 2.8rem;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      box-shadow: 0 5px 18px rgba(0,242,254,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,242,254,0.55);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <button class="close-btn" id="btn-close-x">&times;</button>
+    
+    <div class="logo-box">
+      <svg width="76" height="76" viewBox="0 0 512 512" style="filter: drop-shadow(0 0 16px rgba(0,242,254,0.5));">
+        <rect x="25" y="25" width="462" height="462" rx="80" fill="#0D0E15" stroke="url(#about-cyber-grad)" stroke-width="18"/>
+        <path d="M275 120 h50 v230 h-50 z M325 110 h85 v90 h-85 z M150 275 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M110 250 h18 v100 h-18 z M142 190 h18 v160 h-18 z M360 230 h18 v120 h-18 z M392 280 h18 v70 h-18 z" fill="#00F2FE"/>
+        <path d="M265 110 h50 v230 h-50 z M315 100 h85 v90 h-85 z M140 265 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M100 240 h18 v100 h-18 z M132 180 h18 v160 h-18 z M350 220 h18 v120 h-18 z M382 270 h18 v70 h-18 z" fill="#FF007F"/>
+        <path d="M270 115 h50 v230 h-50 z M320 105 h85 v90 h-85 z M145 270 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M105 245 h18 v100 h-18 z M137 185 h18 v160 h-18 z M355 225 h18 v120 h-18 z M387 275 h18 v70 h-18 z" fill="#FFFFFF"/>
+        <defs>
+          <linearGradient id="about-cyber-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00F2FE"/>
+            <stop offset="50%" stop-color="#9A4EF6"/>
+            <stop offset="100%" stop-color="#FF007F"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <div>
+      <h2>TikTok-Now Desktop</h2>
+      <p class="subtitle">Your Ultimate Desktop Entertainment Hub 🎬</p>
+      <p class="version">v1.0.0 &bull; Powered by Rust & Tauri v2</p>
+    </div>
+
+    <div class="cheatsheet">
+      <div class="cheatsheet-title">✨ Shortcut Cheatsheet:</div>
+      &bull; <b>A</b> : Toggle Auto-Scroll Mode<br>
+      &bull; <b>Left / Right</b> : Rewind / Fast-Forward 5s<br>
+      &bull; <b>[ / ]</b> : Volume Down / Volume Up<br>
+      &bull; <b>P</b> : Picture-in-Picture Mode<br>
+      &bull; <b>Space</b> : Play / Pause Video
+    </div>
+
+    <div class="author">
+      Authored with ❤️ by <b>Benedictus Rey (@benedictusrey)</b>
+    </div>
+
+    <button class="btn-action" id="btn-close-gotit">Got It!</button>
+  </div>
+
+  <script>
+    const closeWin = () => { window.close(); };
+    document.getElementById('btn-close-x').onclick = closeWin;
+    document.getElementById('btn-close-gotit').onclick = closeWin;
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schema.tauri.app/config/2/capability",
+  "identifier": "default",
+  "description": "Capabilities for TikTok-Now live routing to https://www.tiktok.com",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://tiktok.com/*",
+      "https://*.tiktok.com/*",
+      "https://www.tiktok.com/*",
+      "https://accounts.google.com/*",
+      "https://appleid.apple.com/*",
+      "https://*.facebook.com/*",
+      "https://*.twitter.com/*"
+    ]
+  },
+  "permissions": [
+    "core:default",
+    "http:default",
+    "notification:default"
+  ]
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok-Now</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="splash-screen">
+    <!-- Centered Logo with Cyber Glow -->
+    <div class="logo-container">
+      <div class="glow-ring"></div>
+      <svg width="108" height="108" viewBox="0 0 512 512" class="brand-icon">
+        <rect x="25" y="25" width="462" height="462" rx="80" fill="#0D0E15" stroke="url(#splash-cyber-grad)" stroke-width="18"/>
+        <path d="M275 120 h50 v230 h-50 z M325 110 h85 v90 h-85 z M150 275 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M110 250 h18 v100 h-18 z M142 190 h18 v160 h-18 z M360 230 h18 v120 h-18 z M392 280 h18 v70 h-18 z" fill="#00F2FE"/>
+        <path d="M265 110 h50 v230 h-50 z M315 100 h85 v90 h-85 z M140 265 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M100 240 h18 v100 h-18 z M132 180 h18 v160 h-18 z M350 220 h18 v120 h-18 z M382 270 h18 v70 h-18 z" fill="#FF007F"/>
+        <path d="M270 115 h50 v230 h-50 z M320 105 h85 v90 h-85 z M145 270 a65 65 0 1 0 130 0 a65 65 0 1 0 -130 0 Z M105 245 h18 v100 h-18 z M137 185 h18 v160 h-18 z M355 225 h18 v120 h-18 z M387 275 h18 v70 h-18 z" fill="#FFFFFF"/>
+        <defs>
+          <linearGradient id="splash-cyber-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00F2FE"/>
+            <stop offset="50%" stop-color="#9A4EF6"/>
+            <stop offset="100%" stop-color="#FF007F"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Equalizer Visualizer Bars -->
+    <div class="equalizer">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </div>
+
+    <!-- Brand Header -->
+    <div class="brand-header">
+      <h1 class="title">TikTok<span class="gradient-text">-Now</span></h1>
+      <p id="tagline-text" class="tagline">Bringing the beat to your desktop 🎵</p>
+    </div>
+
+    <!-- Loader & Connection Status -->
+    <div class="status-card">
+      <div class="spinner"></div>
+      <p id="status-text">Connecting to TikTok feed...</p>
+      <button id="retry-btn" class="btn-retry" style="display: none;">Retry Connection</button>
+    </div>
+
+    <!-- Footer Credit -->
+    <div class="footer-credit">
+      TikTok-Now Desktop v1.0.0 &bull; Powered by Tauri v2 + Rust
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

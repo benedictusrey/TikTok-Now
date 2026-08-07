@@ -180,6 +180,32 @@ pub fn run() {
                         } catch(e) {}
                     }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 
+                    // 0c. Captcha & Slider Dragging Fix: Prevents native WebView HTML5 dragstart from cancelling pointermove/mousemove
+                    document.addEventListener('dragstart', function(e) {
+                        if (e.target) {
+                            var tag = e.target.tagName ? e.target.tagName.toUpperCase() : '';
+                            if (tag === 'IMG' || tag === 'SVG' || e.target.closest('[class*="captcha"]') || e.target.closest('[class*="sec-captcha"]') || e.target.closest('[class*="slider"]') || e.target.closest('[class*="verify"]') || e.target.closest('[class*="puzzle"]')) {
+                                e.preventDefault();
+                            }
+                        }
+                    }, true);
+
+                    var captchaCSS = document.createElement('style');
+                    captchaCSS.id = 'tiktok-now-captcha-fix';
+                    captchaCSS.textContent = `
+                        [class*="captcha"], [class*="sec-captcha"], [class*="slider"], [class*="verify"], [class*="puzzle"] {
+                            -webkit-user-drag: none !important;
+                            user-select: none !important;
+                            -webkit-user-select: none !important;
+                            touch-action: none !important;
+                        }
+                        [class*="captcha"] img, [class*="sec-captcha"] img, [class*="captcha"] svg, [class*="sec-captcha"] svg {
+                            -webkit-user-drag: none !important;
+                            pointer-events: none !important;
+                        }
+                    `;
+                    (document.head || document.documentElement).appendChild(captchaCSS);
+
                     window.autoScrollEnabled = false;
 
                     // 1. Floating Toast Notification

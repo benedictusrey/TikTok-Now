@@ -17,6 +17,10 @@
   "permissions": [
     "core:default",
     "http:default",
-    "notification:default"
+    "notification:default",
+    "allow-check-auth",
+    "allow-jump-to-external",
+    "allow-navigate-to",
+    "allow-get-app-info"
   ]
 }

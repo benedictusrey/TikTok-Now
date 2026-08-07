@@ -60,6 +60,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let copy_url = MenuItemBuilder::with_id("copy_url", "📋 Copy Current Video Link").build(app)?;
     let capture_frame = MenuItemBuilder::with_id("capture_frame", "📸 Capture Video Frame (S)").build(app)?;
     let autostart = MenuItemBuilder::with_id("autostart", "🚀 Launch on Startup").build(app)?;
+    let autostart_handle = autostart.clone();
     let clear_cache = MenuItemBuilder::with_id("clear_cache", "🧹 Clear Web Cache").build(app)?;
     let about = MenuItemBuilder::with_id("about", "ℹ️ About TikTok-Now").build(app)?;
     let sep1 = tauri::menu::PredefinedMenuItem::separator(app)?;
@@ -91,14 +92,22 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "show_hide" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    if main.is_visible().unwrap_or(false) {
-                        let _ = main.eval("var vids = document.querySelectorAll('video'); vids.forEach(function(v) { v.pause(); });");
-                        let _ = main.hide();
-                    } else {
+                    // A minimized window is still "visible" per Win32 — so restore it
+                    // whenever it is minimized, hidden, or merely unfocused (the user
+                    // clicked the tray expecting the app to come to the front). Only
+                    // hide when it is visible AND focused (true toggle).
+                    let minimized = main.is_minimized().unwrap_or(false);
+                    let visible = main.is_visible().unwrap_or(false);
+                    let focused = main.is_focused().unwrap_or(false);
+                    if minimized || !visible || !focused {
+                        let _ = main.unminimize();
                         let _ = main.set_size(tauri::Size::Logical(tauri::LogicalSize { width: 1250.0, height: 900.0 }));
                         let _ = main.center();
                         let _ = main.show();
                         let _ = main.set_focus();
+                    } else {
+                        let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
+                        let _ = main.hide();
                     }
                 }
             }
@@ -159,9 +168,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             // Playback
             "toggle_play" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval(
-                        "var v = document.querySelector('video'); if (v) { v.paused ? v.play() : v.pause(); }",
-                    );
+                    let _ = main.eval("if (window.togglePlayPause) window.togglePlayPause();");
                 }
             }
             "next_video" => {
@@ -176,19 +183,17 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "seek_back" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("var v = document.querySelector('video'); if(v) v.currentTime = Math.max(0, v.currentTime - 5);");
+                    let _ = main.eval("if (window.seekBy) window.seekBy(-5);");
                 }
             }
             "seek_forward" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("var v = document.querySelector('video'); if(v) v.currentTime = Math.min(v.duration || 9999, v.currentTime + 5);");
+                    let _ = main.eval("if (window.seekBy) window.seekBy(5);");
                 }
             }
             "toggle_mute" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval(
-                        "var vids = document.querySelectorAll('video'); vids.forEach(v => v.muted = !v.muted);",
-                    );
+                    let _ = main.eval("if (window.toggleMute) window.toggleMute();");
                 }
             }
             "toggle_autoscroll" => {
@@ -198,18 +203,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "toggle_pip" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval(r#"
-                        (function() {
-                            var v = document.querySelector('video');
-                            if (v) {
-                                if (document.pictureInPictureElement) {
-                                    document.exitPictureInPicture().catch(function(){});
-                                } else {
-                                    v.requestPictureInPicture().catch(function(){});
-                                }
-                            }
-                        })();
-                    "#);
+                    let _ = main.eval("if (window.togglePip) window.togglePip();");
                 }
             }
             "speed_10" => {
@@ -229,7 +223,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "copy_url" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("navigator.clipboard.writeText(window.location.href);");
+                    let _ = main.eval("if (window.copyCurrentUrl) window.copyCurrentUrl();");
                 }
             }
             "capture_frame" => {
@@ -238,7 +232,25 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             "autostart" => {
-                eprintln!("[TikTok-Now] Autostart menu clicked");
+                use tauri_plugin_autostart::ManagerExt;
+                let autol = app.autolaunch();
+                let was_enabled = autol.is_enabled().unwrap_or(false);
+                if was_enabled {
+                    let _ = autol.disable();
+                } else {
+                    let _ = autol.enable();
+                }
+                let now_enabled = !was_enabled;
+                let _ = autostart_handle.set_text(format!(
+                    "🚀 Launch on Startup: {}",
+                    if now_enabled { "ON" } else { "OFF" }
+                ));
+                if let Some(main) = app.get_webview_window("main") {
+                    let _ = main.eval(&format!(
+                        "if (window.showToast) window.showToast('🚀 Launch on Startup: {}');",
+                        if now_enabled { "ON" } else { "OFF" }
+                    ));
+                }
             }
             "clear_cache" => {
                 if let Some(main) = app.get_webview_window("main") {
@@ -316,7 +328,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
   card.appendChild(sub);
 
   var ver = el('p', 'color:#8e8ea0;font-size:0.78rem;margin-bottom:1.2rem;');
-  ver.textContent = 'v1.0.0 \u2022 Powered by Rust & Tauri v2';
+  ver.textContent = 'v2.0.0 • Powered by Rust & Tauri v2';
   card.appendChild(ver);
 
   // Author
@@ -361,12 +373,19 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 if button == MouseButton::Left {
                     let app = tray.app_handle();
                     if let Some(main) = app.get_webview_window("main") {
-                        if main.is_visible().unwrap_or(false) {
-                            let _ = main.eval("var vids = document.querySelectorAll('video'); vids.forEach(function(v) { v.pause(); });");
-                            let _ = main.hide();
-                        } else {
+                        // Same restore-vs-hide rule as the Show/Hide menu item:
+                        // minimized OR hidden OR unfocused -> restore to the front;
+                        // visible AND focused -> hide to the tray (pause first).
+                        let minimized = main.is_minimized().unwrap_or(false);
+                        let visible = main.is_visible().unwrap_or(false);
+                        let focused = main.is_focused().unwrap_or(false);
+                        if minimized || !visible || !focused {
+                            let _ = main.unminimize();
                             let _ = main.show();
                             let _ = main.set_focus();
+                        } else {
+                            let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
+                            let _ = main.hide();
                         }
                     }
                 }

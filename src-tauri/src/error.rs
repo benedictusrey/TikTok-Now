@@ -6,9 +6,6 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Db(#[from] rusqlite::Error),
 
-    #[error("Network error: {0}")]
-    Network(#[from] reqwest::Error),
-
     #[error("Tauri error: {0}")]
     Tauri(#[from] tauri::Error),
 

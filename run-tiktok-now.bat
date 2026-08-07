@@ -1,3 +1,2 @@
 @echo off
-title TikTok-Now Desktop Launcher
-start "" "%~dp0TikTok-Now_v1.0.0.exe"
+start "" "%~dp0TikTok-Now_v2.0.0_windows-x86_64.exe"

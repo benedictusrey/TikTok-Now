@@ -12,7 +12,7 @@ pub struct AppInfo {
 pub async fn get_app_info() -> Result<AppInfo> {
     Ok(AppInfo {
         name: "TikTok-Now".to_string(),
-        version: "1.0.0".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
         author: "@benedictusrey".to_string(),
     })
 }

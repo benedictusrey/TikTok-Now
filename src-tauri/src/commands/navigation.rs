@@ -9,6 +9,8 @@ pub async fn navigate_to(app: AppHandle, target: String) -> Result<()> {
             "following" => "https://www.tiktok.com/following",
             "explore" => "https://www.tiktok.com/explore",
             "live" => "https://www.tiktok.com/live",
+            "friends" => "https://www.tiktok.com/friends",
+            "upload" => "https://www.tiktok.com/upload",
             _ => "https://www.tiktok.com/",
         };
         let js = format!("window.location.href = '{}';", url);

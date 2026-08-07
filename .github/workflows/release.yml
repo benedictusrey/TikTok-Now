@@ -9,7 +9,7 @@ on:
       tag:
         description: 'Release tag (e.g. v1.0.1)'
         required: true
-        default: 'v1.0.0'
+        default: 'v2.0.0'
 
 permissions:
   contents: write
@@ -51,7 +51,7 @@ jobs:
       - name: Package & checksum
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name || inputs.tag }}"
+          $tag = "${{ inputs.tag || github.ref_name }}"
           $src = "src-tauri\target\release\TikTok-Now.exe"
           $dst = "TikTok-Now_${tag}_windows-x86_64.exe"
           Copy-Item $src $dst
@@ -63,7 +63,7 @@ jobs:
         with:
           name: release-windows
           path: |
-            TikTok-Now_${{ github.ref_name || inputs.tag }}_windows-x86_64.exe
+            TikTok-Now_${{ inputs.tag || github.ref_name }}_windows-x86_64.exe
             checksums-windows.txt
           retention-days: 7
 
@@ -105,11 +105,11 @@ jobs:
           lipo -create \
             src-tauri/target/x86_64-apple-darwin/release/TikTok-Now \
             src-tauri/target/aarch64-apple-darwin/release/TikTok-Now \
-            -output TikTok-Now_${{ github.ref_name || inputs.tag }}_macos-universal
+            -output TikTok-Now_${{ inputs.tag || github.ref_name }}_macos-universal
 
       - name: Make executable & checksum
         run: |
-          TAG="${{ github.ref_name || inputs.tag }}"
+          TAG="${{ inputs.tag || github.ref_name }}"
           BIN="TikTok-Now_${TAG}_macos-universal"
           chmod +x "$BIN"
           shasum -a 256 "$BIN" > checksums-macos.txt
@@ -119,7 +119,7 @@ jobs:
         with:
           name: release-macos
           path: |
-            TikTok-Now_${{ github.ref_name || inputs.tag }}_macos-universal
+            TikTok-Now_${{ inputs.tag || github.ref_name }}_macos-universal
             checksums-macos.txt
           retention-days: 7
 
@@ -163,7 +163,7 @@ jobs:
 
       - name: Package & checksum
         run: |
-          TAG="${{ github.ref_name || inputs.tag }}"
+          TAG="${{ inputs.tag || github.ref_name }}"
           SRC="src-tauri/target/release/TikTok-Now"
           DST="TikTok-Now_${TAG}_linux-x86_64"
           cp "$SRC" "$DST"
@@ -175,7 +175,7 @@ jobs:
         with:
           name: release-linux
           path: |
-            TikTok-Now_${{ github.ref_name || inputs.tag }}_linux-x86_64
+            TikTok-Now_${{ inputs.tag || github.ref_name }}_linux-x86_64
             checksums-linux.txt
           retention-days: 7
 
@@ -202,7 +202,7 @@ jobs:
 
       - name: Resolve tag name
         id: tag
-        run: echo "value=${{ github.ref_name || inputs.tag }}" >> "$GITHUB_OUTPUT"
+        run: echo "value=${{ inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -214,6 +214,17 @@ jobs:
 
             A high-performance TikTok desktop wrapper powered by **Rust + Tauri v2**.
             Sub-10 MB binary. No Electron. No Node.js. Pure speed.
+
+            ---
+
+            ### 🚀 What's new since v1.0.0
+
+            - 🖼️ **Drag to browse photo posts** — swipe left/right through multi-image carousels (no more tiny arrow buttons); single-photo posts are smart: dragging never pauses the slideshow or selects the image (release clicks after a drag are suppressed).
+            - 🔇 **True pause on minimize & close** — audio stops the instant the window is hidden, and resumes where you left off on restore (Rust watchdog + OS-level audio-session mute = guaranteed silence). Audio-only feeds restore reliably too.
+            - 🖱️ **Tray-icon restore** — the tray click always brings the app back to the front, even from minimized.
+            - 🔉 **Autoplay with sound at 50% volume** — every fresh launch starts unmuted (TikTok's own re-mute is re-enforced during a startup grace window, and a stale Windows session mute is cleared automatically).
+            - ⌨️ **Working shortcuts & autostart** — `M` mute, `P` picture-in-picture, `S` capture frame, `←`/`→` seek (or flip photo slides), `A` auto-scroll, `R` refresh, plus a real "Launch on Startup".
+            - ⚡ **Leaner & more reliable** — removed 9 unused dependencies, fixed close-to-tray races, and a page-script root cause that silently killed features.
 
             ---
 
@@ -236,11 +247,8 @@ jobs:
             ### ✨ Features
             - 🔥 Full TikTok feed — For You, Following, Friends, Live, Explore
             - 🎯 Official TikTok buttons integration (Like, Comment, Bookmark, Share)
-            - 📌 Always-on-top pinning
-            - 🖼️ Picture-in-Picture support
-            - 📜 Auto-Scroll mode
-            - 🔄 One-click feed refresh from system tray
-            - 🧹 Clear web cache
+            - 📌 Always-on-top pinning · 🖼️ Picture-in-Picture · 📜 Auto-Scroll mode
+            - 🔄 One-click feed refresh from system tray · 🧹 Clear web cache
             - 🚪 Minimize-to-tray on close (stays running in background)
             - 🔐 Clean OAuth login flow (popup auto-closes after login)
             - 🎯 1250 × 900 default window — perfectly sized for TikTok

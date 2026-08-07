@@ -8,8 +8,9 @@ The security, privacy, and integrity of **TikTok-Now** and its users are our top
 
 | Version | Supported | Security Maintenance |
 | :--- | :---: | :--- |
-| **`1.0.x`** | ✅ | Active security support & bug fixes |
-| `< 1.0.0` | ❌ | Pre-release development versions |
+| **`2.0.x`** | ✅ | Active security support & bug fixes (current release) |
+| `1.6.x` | ⚠️ | Legacy — maintained only for critical security issues |
+| `< 1.6.0` | ❌ | Pre-release / superseded versions |
 
 ---
 

@@ -12,12 +12,12 @@
 </p>
 
 <p align="center">
-  🎉 <strong>TikTok-Now 1.0.0 is now available</strong> 🎉<br>
-  Personalized desktop feed control, RAM-conscious autoplay engine, clean window geometry, and seamless system tray integration.
+  🎉 <strong>TikTok-Now 2.0.0 is now available</strong> 🎉<br>
+  Photo posts drag like a native app — and sound works from the very first launch.
 </p>
 
 <p align="center">
-  <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/version-1.0.0-213547?style=flat-square" alt="Version 1.0.0"></a>
+  <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/version-2.0.0-213547?style=flat-square" alt="Version 2.0.0"></a>
   <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-168B72?style=flat-square" alt="Platform"></a>
   <a href="https://tauri.app/"><img src="https://img.shields.io/badge/built%20with-Tauri%20v2-24A6D8?style=flat-square" alt="Built with Tauri v2"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/built%20with-Rust-B7410E?style=flat-square" alt="Built with Rust"></a>
@@ -27,7 +27,7 @@
 
 ---
 
-**TikTok-Now** is an independent desktop application that combines the official TikTok web service with focused desktop workflow controls. Enjoy your favorite video feeds while adding the essential details that make a desktop experience feel native, responsive, and efficient: smart video pausing, direct keyboard navigation, isolated OAuth login popups, and quiet tray management.
+**TikTok-Now** is a tiny desktop app that wraps the official TikTok web experience with the things a desktop app should have had all along: videos that **pause when you leave** and **resume with sound when you return**, photo posts that **swipe like a native app**, keyboard shortcuts, and a quiet home in the system tray. Built with **Tauri v2 + Rust**, it weighs under 10 MB — no Electron, no bundled browser.
 
 > ⚠️ **Disclaimer**: TikTok-Now is an independent, unofficial open-source desktop client by [@benedictusrey](https://github.com/benedictusrey). It is not affiliated with, endorsed by, or maintained by TikTok Ltd. or ByteDance Ltd. TikTok is a registered trademark of its respective owner.
 
@@ -35,6 +35,8 @@
 
 ## 🧭 Table of Contents
 
+- [✨ What's New in v2.0.0](#-whats-new-in-v200)
+- [🛤️ From v1.0.0 to v2.0.0](#️-from-v100-to-v200)
 - [🌟 Features & Capabilities](#-what-tiktok-now-adds)
 - [⚖️ Web vs TikTok-Now Comparison](#️-tiktok-now-and-the-official-web-experience)
 - [⚡ Efficiency & Performance](#-observed-resource-efficiency)
@@ -43,6 +45,34 @@
 - [📚 Project Documentation](#-documentation)
 - [🤝 Community & Contributing](#-contributing--community)
 - [👤 Author & License](#-author-and-license)
+
+---
+
+## ✨ What's New in v2.0.0
+
+- 🖼️ **Photo posts finally drag the way they should** — swipe left/right through multi-image posts (the images follow your cursor and snap on release), and **single-photo posts are smart**: dragging never pauses the slideshow and never selects the image. A clean tap still works exactly like TikTok's.
+- 🛡️ **No more accidental pauses** — the release click after any drag on a photo post is suppressed, so feed-scrolling that starts on a photo won't pause it either.
+- 🎯 **Video posts untouched** — everything from earlier releases (pause on minimize, tray restore, autoplay with sound) keeps working exactly as before.
+- 🔉 **Sound on every fresh launch** — cold starts come up unmuted at **50% default volume**. Two layers: a 60-second grace window re-enforces the page's unmute (TikTok re-mutes during its own init), and the watchdog clears the **persisted Windows session mute** that made cold starts silent after a hidden exit (minimize→restore used to be the only way to get sound back).
+
+## 🛤️ From v1.0.0 to v2.0.0
+
+The v1.0.0 initial commit was built for *shipping*, not for *daily scrolling*. Every release since then fixed the things that got in the way:
+
+| Since v1.0.0 | What changed |
+|---|---|
+| 🔇 **Pause on minimize & close** | Audio stops the instant the window is hidden; resumes where you left off on restore. Backed by a Rust watchdog + OS-level audio-session mute — silence is *guaranteed*. |
+| 🖱️ **Tray-icon restore** | Clicking the tray icon always brings the app back to the front as the active window (it used to make the taskbar button vanish). |
+- 🔉 **Autoplay with sound** | The first video of a fresh launch plays **unmuted** at **50% volume** (was: always muted until you clicked, or silent until a minimize/restore cycle). |
+| 🖼️ **Photo-post drag** | Swipe through carousels; single photos are drag-safe (no pause, no selection). |
+| ⌨️ **Shortcuts that work** | `M` mute · `P` picture-in-picture · `S` capture frame · `←`/`→` seek (or flip photo slides) · `A` auto-scroll · `R` refresh. |
+| 🚀 **Launch on Startup** | The tray toggle actually enables OS autostart (was a no-op); autostart opens hidden to the tray. |
+| 🧩 **Reliable close-to-tray** | Closing always parks the app in the tray (paused) — never quits by accident. |
+| 📋 **Dead entries revived** | Capture Video Frame & Copy Video Link now work. |
+| ⚡ **Leaner & faster** | 9 unused dependencies removed; smaller binary, faster builds. |
+| 📦 **Real publishing** | GitHub Actions builds & publishes Windows, macOS (universal), and Linux assets. |
+
+*Full detail in [CHANGELOG.md](CHANGELOG.md) and [RELEASE_NOTES.md](RELEASE_NOTES.md).*
 
 ---
 
@@ -62,10 +92,13 @@
 
 <br>
 
-| Area | TikTok-Now 1.0.0 Capabilities |
+| Area | TikTok-Now 2.0.0 Capabilities |
 |---|---|
 | **Feeds Navigation** | Submenu tray shortcuts for **🔥 For You**, **👥 Following**, **🤝 Friends**, **🔍 Explore**, **🔴 Live**, and **➕ Upload** |
-| **Autoplay Engine** | Smart `IntersectionObserver` video engine autoplays focused videos and immediately pauses off-screen content to conserve CPU & memory |
+| **Autoplay Engine** | Smart `IntersectionObserver` video engine autoplays focused videos (with sound) and immediately pauses off-screen content to conserve CPU & memory |
+| **Photo Post Drag** | Drag horizontally on photo posts: multi-image = flip slides (left = next, right = previous, with cursor-follow feedback); single-photo = drag-safe (no pause, no selection); `←`/`→` keys work too |
+| **Pause on Minimize** | Minimizing or closing the window instantly pauses the playing clip — no background audio; restoring the window resumes exactly where you left off (backed by a Rust watchdog + OS-level audio-session mute) |
+| **Tray Restore** | Clicking the tray icon while minimized/hidden restores the app to the front as the active window — never loses its taskbar button |
 | **OAuth Sign-In** | Clean, isolated popup engine for third-party sign-in options; automatically closes upon successful authentication |
 | **System Tray** | Native system tray integration with background minimize-to-tray, single-click toggle, feed switcher, and playback controls |
 | **Playback Control** | Play/Pause, Next/Previous video, Rewind/Fast-Forward 5s, Mute, Volume adjust, Like video, Fullscreen, and Picture-in-Picture |
@@ -105,21 +138,21 @@ Download pre-built release binaries from the [latest GitHub Release](https://git
 
 | Platform | Recommended Asset | Notes |
 |---|---|---|
-| **🪟 Windows (x86_64)** | `TikTok-Now_1.0.0_windows-x86_64.exe` | Portable standalone binary. No installation required. |
-| **🍎 macOS (Universal)** | `TikTok-Now_1.0.0_macos-universal` | Combined binary for Apple Silicon (M1/M2/M3/M4) & Intel Macs. |
-| **🐧 Linux (x86_64)** | `TikTok-Now_1.0.0_linux-x86_64` | Native Linux executable targeting GTK3 & WebKit2GTK 4.1. |
+| **🪟 Windows (x86_64)** | `TikTok-Now_v2.0.0_windows-x86_64.exe` | Portable standalone binary. No installation required. |
+| **🍎 macOS (Universal)** | `TikTok-Now_v2.0.0_macos-universal` | Combined binary for Apple Silicon (M1/M2/M3/M4) & Intel Macs. |
+| **🐧 Linux (x86_64)** | `TikTok-Now_v2.0.0_linux-x86_64` | Native Linux executable targeting GTK3 & WebKit2GTK 4.1. |
 
 ### Quick Execution
-- **Windows**: Double-click `TikTok-Now_1.0.0_windows-x86_64.exe`.
+- **Windows**: Double-click `TikTok-Now_v2.0.0_windows-x86_64.exe`.
 - **macOS**:
   ```bash
-  chmod +x TikTok-Now_1.0.0_macos-universal
-  ./TikTok-Now_1.0.0_macos-universal
+  chmod +x TikTok-Now_v2.0.0_macos-universal
+  ./TikTok-Now_v2.0.0_macos-universal
   ```
 - **Linux**:
   ```bash
-  chmod +x TikTok-Now_1.0.0_linux-x86_64
-  ./TikTok-Now_1.0.0_linux-x86_64
+  chmod +x TikTok-Now_v2.0.0_linux-x86_64
+  ./TikTok-Now_v2.0.0_linux-x86_64
   ```
 
 ---

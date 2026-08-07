@@ -31,7 +31,7 @@ Before creating a bug report, please check existing [GitHub Issues](https://gith
 
 When filing a bug report, please include:
 - **Operating System** (e.g. Windows 11, macOS Sequoia, Ubuntu 24.04).
-- **App Version** (e.g. `v1.0.0`).
+- **App Version** (e.g. `v2.0.0`).
 - **Steps to Reproduce** the issue clearly.
 - **Expected vs Actual Behavior**.
 - Screenshots or console logs if applicable.

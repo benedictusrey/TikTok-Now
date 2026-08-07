@@ -94,7 +94,9 @@ pub fn run() {
                 let app = window.app_handle().clone();
                 if page_title.contains("LOGGED_IN") || page_title.starts_with("TIKTOKNOW:") {
                     let user = page_title.trim_start_matches("TIKTOKNOW:").trim_start_matches("TIKTOKNOW_LOGGED_IN").to_string();
-                    if !user.is_empty() {
+                    let is_pure_numeric = !user.is_empty() && user.chars().all(|c| c.is_ascii_digit());
+
+                    if !user.is_empty() && !is_pure_numeric {
                         *cache_for_title.lock().unwrap() = Some(user.clone());
                     }
 
@@ -112,10 +114,13 @@ pub fn run() {
                         let _ = window.eval("window.location.reload();");
                     }
 
-                    let new_title = if user.is_empty() {
-                        "TikTok-Now".to_string()
-                    } else {
+                    let cached = cache_for_title.lock().unwrap().clone();
+                    let new_title = if let Some(u) = cached {
+                        format!("TikTok-Now (@{})", u)
+                    } else if !user.is_empty() && !is_pure_numeric {
                         format!("TikTok-Now (@{})", user)
+                    } else {
+                        "TikTok-Now".to_string()
                     };
                     let _ = window.set_title(&new_title);
                 } else {
@@ -134,12 +139,28 @@ pub fn run() {
                         let _ = window.eval(r#"
                             (function() {
                                 try {
-                                    var avatar = document.querySelector('a[href*="/@"]');
-                                    if (avatar) {
-                                        var href = avatar.getAttribute('href') || '';
-                                        var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
-                                        if (m && m[1]) {
-                                            document.title = 'TIKTOKNOW:' + m[1];
+                                    var selectors = [
+                                        '[data-e2e="user-profile"]',
+                                        'a[href*="/@"][class*="Profile"]',
+                                        'a[href*="/@"][class*="Avatar"]',
+                                        'a[href*="/@"][class*="user"]',
+                                        'nav a[href*="/@"]',
+                                        'header a[href*="/@"]',
+                                        'aside a[href*="/@"]',
+                                        'a[href*="/@"]'
+                                    ];
+                                    for (var i = 0; i < selectors.length; i++) {
+                                        var els = document.querySelectorAll(selectors[i]);
+                                        for (var j = 0; j < els.length; j++) {
+                                            var href = els[j].getAttribute('href') || '';
+                                            var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
+                                            if (m && m[1]) {
+                                                var handle = m[1].replace(/\/$/, '');
+                                                if (!/^\d+$/.test(handle) && handle.length < 32) {
+                                                    document.title = 'TIKTOKNOW:' + handle;
+                                                    return;
+                                                }
+                                            }
                                         }
                                     }
                                 } catch(e) {}
@@ -159,20 +180,44 @@ pub fn run() {
                     forceDarkCSS.textContent = 'html, body { background-color: #0d0e15 !important; color: #ffffff !important; }';
                     (document.head || document.documentElement).appendChild(forceDarkCSS);
 
+                    // Helper: Extract valid TikTok handle (rejecting pure numeric IDs)
+                    function getTikTokUserHandle() {
+                        try {
+                            var selectors = [
+                                '[data-e2e="user-profile"]',
+                                'a[href*="/@"][class*="Profile"]',
+                                'a[href*="/@"][class*="Avatar"]',
+                                'a[href*="/@"][class*="user"]',
+                                'nav a[href*="/@"]',
+                                'header a[href*="/@"]',
+                                'aside a[href*="/@"]',
+                                'a[href*="/@"]'
+                            ];
+                            for (var i = 0; i < selectors.length; i++) {
+                                var els = document.querySelectorAll(selectors[i]);
+                                for (var j = 0; j < els.length; j++) {
+                                    var href = els[j].getAttribute('href') || '';
+                                    var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
+                                    if (m && m[1]) {
+                                        var handle = m[1].replace(/\/$/, '');
+                                        if (!/^\d+$/.test(handle) && handle.length < 32) {
+                                            return handle;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch(e) {}
+                        return null;
+                    }
+
                     // 0b. DOM Toast Observer: Watches for "Logged in" Toast Notification & Triggers Instant Popup Close
                     new MutationObserver(function() {
                         try {
                             var text = document.body ? document.body.innerText : '';
                             if (text.indexOf('Logged in') !== -1 || text.indexOf('Login success') !== -1) {
-                                var avatar = document.querySelector('a[href*="/@"]');
-                                if (avatar) {
-                                    var href = avatar.getAttribute('href') || '';
-                                    var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
-                                    if (m && m[1]) {
-                                        document.title = 'TIKTOKNOW:' + m[1];
-                                    } else {
-                                        document.title = 'TIKTOKNOW_LOGGED_IN';
-                                    }
+                                var handle = getTikTokUserHandle();
+                                if (handle) {
+                                    document.title = 'TIKTOKNOW:' + handle;
                                 } else {
                                     document.title = 'TIKTOKNOW_LOGGED_IN';
                                 }
@@ -350,13 +395,9 @@ pub fn run() {
                     // 7. Periodic Username Extractor
                     setInterval(function() {
                         try {
-                            var avatar = document.querySelector('a[href*="/@"]');
-                            if (avatar) {
-                                var href = avatar.getAttribute('href') || '';
-                                var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
-                                if (m && m[1]) {
-                                    document.title = 'TIKTOKNOW:' + m[1];
-                                }
+                            var handle = getTikTokUserHandle();
+                            if (handle) {
+                                document.title = 'TIKTOKNOW:' + handle;
                             }
                         } catch(e) {}
                     }, 1000);

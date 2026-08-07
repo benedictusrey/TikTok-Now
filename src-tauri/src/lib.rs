@@ -139,29 +139,67 @@ pub fn run() {
                         let _ = window.eval(r#"
                             (function() {
                                 try {
-                                    var selectors = [
-                                        '[data-e2e="user-profile"]',
-                                        'a[href*="/@"][class*="Profile"]',
-                                        'a[href*="/@"][class*="Avatar"]',
-                                        'a[href*="/@"][class*="user"]',
-                                        'nav a[href*="/@"]',
-                                        'header a[href*="/@"]',
-                                        'aside a[href*="/@"]',
-                                        'a[href*="/@"]'
-                                    ];
-                                    for (var i = 0; i < selectors.length; i++) {
-                                        var els = document.querySelectorAll(selectors[i]);
-                                        for (var j = 0; j < els.length; j++) {
-                                            var href = els[j].getAttribute('href') || '';
+                                    function getLoggedInHandle() {
+                                        try {
+                                            var uData = window.__UNIVERSAL_DATA_FOR_REHYDRATION__;
+                                            if (uData && uData.__DEFAULT_SCOPE__) {
+                                                var s = uData.__DEFAULT_SCOPE__;
+                                                if (s['webapp.app-context'] && s['webapp.app-context'].user && s['webapp.app-context'].user.uniqueId) {
+                                                    var u1 = s['webapp.app-context'].user.uniqueId;
+                                                    if (u1 && !/^\d+$/.test(u1)) return u1;
+                                                }
+                                                if (s['webapp.user-detail'] && s['webapp.user-detail'].userInfo && s['webapp.user-detail'].userInfo.user && s['webapp.user-detail'].userInfo.user.uniqueId) {
+                                                    var u2 = s['webapp.user-detail'].userInfo.user.uniqueId;
+                                                    if (u2 && !/^\d+$/.test(u2)) return u2;
+                                                }
+                                            }
+                                        } catch(e1) {}
+
+                                        try {
+                                            if (window.SIGI_STATE && window.SIGI_STATE.AppContext && window.SIGI_STATE.AppContext.user && window.SIGI_STATE.AppContext.user.uniqueId) {
+                                                var u3 = window.SIGI_STATE.AppContext.user.uniqueId;
+                                                if (u3 && !/^\d+$/.test(u3)) return u3;
+                                            }
+                                        } catch(e2) {}
+
+                                        try {
+                                            if (window.__INITIAL_STATE__ && window.__INITIAL_STATE__.appContext && window.__INITIAL_STATE__.appContext.user && window.__INITIAL_STATE__.appContext.user.uniqueId) {
+                                                var u4 = window.__INITIAL_STATE__.appContext.user.uniqueId;
+                                                if (u4 && !/^\d+$/.test(u4)) return u4;
+                                            }
+                                        } catch(e3) {}
+
+                                        var navProfile = document.querySelector('a[data-e2e="nav-profile"]') ||
+                                                         document.querySelector('a[data-e2e="profile-icon"]') ||
+                                                         document.querySelector('a[data-e2e="user-profile"]') ||
+                                                         document.querySelector('a[href^="/@"][class*="SideNav"]') ||
+                                                         document.querySelector('[class*="HeaderRight"] a[href*="/@"]') ||
+                                                         document.querySelector('[class*="DivHeaderRight"] a[href*="/@"]');
+                                        if (navProfile) {
+                                            var href = navProfile.getAttribute('href') || '';
                                             var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
                                             if (m && m[1]) {
                                                 var handle = m[1].replace(/\/$/, '');
-                                                if (!/^\d+$/.test(handle) && handle.length < 32) {
-                                                    document.title = 'TIKTOKNOW:' + handle;
-                                                    return;
-                                                }
+                                                if (!/^\d+$/.test(handle)) return handle;
                                             }
                                         }
+
+                                        if (location.pathname.indexOf('/@') === 0) {
+                                            var isMyProfile = document.querySelector('[data-e2e="edit-profile-entrance"]') ||
+                                                              Array.from(document.querySelectorAll('button')).some(function(b) {
+                                                                  return b.textContent && b.textContent.indexOf('Edit profile') !== -1;
+                                                              });
+                                            if (isMyProfile) {
+                                                var pathHandle = location.pathname.split('/@')[1].split('/')[0];
+                                                if (pathHandle && !/^\d+$/.test(pathHandle)) return pathHandle;
+                                            }
+                                        }
+                                        return null;
+                                    }
+
+                                    var h = getLoggedInHandle();
+                                    if (h) {
+                                        document.title = 'TIKTOKNOW:' + h;
                                     }
                                 } catch(e) {}
                             })();
@@ -180,30 +218,61 @@ pub fn run() {
                     forceDarkCSS.textContent = 'html, body { background-color: #0d0e15 !important; color: #ffffff !important; }';
                     (document.head || document.documentElement).appendChild(forceDarkCSS);
 
-                    // Helper: Extract valid TikTok handle (rejecting pure numeric IDs)
+                    // Helper: Extract valid logged-in TikTok user handle (rejecting feed authors & numeric IDs)
                     function getTikTokUserHandle() {
                         try {
-                            var selectors = [
-                                '[data-e2e="user-profile"]',
-                                'a[href*="/@"][class*="Profile"]',
-                                'a[href*="/@"][class*="Avatar"]',
-                                'a[href*="/@"][class*="user"]',
-                                'nav a[href*="/@"]',
-                                'header a[href*="/@"]',
-                                'aside a[href*="/@"]',
-                                'a[href*="/@"]'
-                            ];
-                            for (var i = 0; i < selectors.length; i++) {
-                                var els = document.querySelectorAll(selectors[i]);
-                                for (var j = 0; j < els.length; j++) {
-                                    var href = els[j].getAttribute('href') || '';
-                                    var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
-                                    if (m && m[1]) {
-                                        var handle = m[1].replace(/\/$/, '');
-                                        if (!/^\d+$/.test(handle) && handle.length < 32) {
-                                            return handle;
-                                        }
+                            try {
+                                var uData = window.__UNIVERSAL_DATA_FOR_REHYDRATION__;
+                                if (uData && uData.__DEFAULT_SCOPE__) {
+                                    var s = uData.__DEFAULT_SCOPE__;
+                                    if (s['webapp.app-context'] && s['webapp.app-context'].user && s['webapp.app-context'].user.uniqueId) {
+                                        var u1 = s['webapp.app-context'].user.uniqueId;
+                                        if (u1 && !/^\d+$/.test(u1)) return u1;
                                     }
+                                    if (s['webapp.user-detail'] && s['webapp.user-detail'].userInfo && s['webapp.user-detail'].userInfo.user && s['webapp.user-detail'].userInfo.user.uniqueId) {
+                                        var u2 = s['webapp.user-detail'].userInfo.user.uniqueId;
+                                        if (u2 && !/^\d+$/.test(u2)) return u2;
+                                    }
+                                }
+                            } catch(e1) {}
+
+                            try {
+                                if (window.SIGI_STATE && window.SIGI_STATE.AppContext && window.SIGI_STATE.AppContext.user && window.SIGI_STATE.AppContext.user.uniqueId) {
+                                    var u3 = window.SIGI_STATE.AppContext.user.uniqueId;
+                                    if (u3 && !/^\d+$/.test(u3)) return u3;
+                                }
+                            } catch(e2) {}
+
+                            try {
+                                if (window.__INITIAL_STATE__ && window.__INITIAL_STATE__.appContext && window.__INITIAL_STATE__.appContext.user && window.__INITIAL_STATE__.appContext.user.uniqueId) {
+                                    var u4 = window.__INITIAL_STATE__.appContext.user.uniqueId;
+                                    if (u4 && !/^\d+$/.test(u4)) return u4;
+                                }
+                            } catch(e3) {}
+
+                            var navProfile = document.querySelector('a[data-e2e="nav-profile"]') ||
+                                             document.querySelector('a[data-e2e="profile-icon"]') ||
+                                             document.querySelector('a[data-e2e="user-profile"]') ||
+                                             document.querySelector('a[href^="/@"][class*="SideNav"]') ||
+                                             document.querySelector('[class*="HeaderRight"] a[href*="/@"]') ||
+                                             document.querySelector('[class*="DivHeaderRight"] a[href*="/@"]');
+                            if (navProfile) {
+                                var href = navProfile.getAttribute('href') || '';
+                                var m = href.match(/\/@([a-zA-Z0-9_\.]+)/);
+                                if (m && m[1]) {
+                                    var handle = m[1].replace(/\/$/, '');
+                                    if (!/^\d+$/.test(handle)) return handle;
+                                }
+                            }
+
+                            if (location.pathname.indexOf('/@') === 0) {
+                                var isMyProfile = document.querySelector('[data-e2e="edit-profile-entrance"]') ||
+                                                  Array.from(document.querySelectorAll('button')).some(function(b) {
+                                                      return b.textContent && b.textContent.indexOf('Edit profile') !== -1;
+                                                  });
+                                if (isMyProfile) {
+                                    var pathHandle = location.pathname.split('/@')[1].split('/')[0];
+                                    if (pathHandle && !/^\d+$/.test(pathHandle)) return pathHandle;
                                 }
                             }
                         } catch(e) {}

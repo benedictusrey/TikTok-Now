@@ -235,7 +235,7 @@ jobs:
 
             ### ✨ Features
             - 🔥 Full TikTok feed — For You, Following, Friends, Live, Explore
-            - ⌨️ Rich keyboard shortcuts (see cheatsheet in **ℹ️ About TikTok-Now** tray menu)
+            - 🎯 Official TikTok buttons integration (Like, Comment, Bookmark, Share)
             - 📌 Always-on-top pinning
             - 🖼️ Picture-in-Picture support
             - 📜 Auto-Scroll mode
@@ -244,22 +244,6 @@ jobs:
             - 🚪 Minimize-to-tray on close (stays running in background)
             - 🔐 Clean OAuth login flow (popup auto-closes after login)
             - 🎯 1250 × 900 default window — perfectly sized for TikTok
-
-            ### ⌨️ Keyboard Shortcuts
-
-            | Key | Action |
-            |---|---|
-            | `Space` | Play / Pause |
-            | `J` / `↓` | Next Video |
-            | `K` / `↑` | Previous Video |
-            | `←` / `→` | Rewind / Fast-Forward 5s |
-            | `M` | Mute / Unmute |
-            | `[` / `]` | Volume Down / Up |
-            | `L` | Like Video |
-            | `F` | Toggle Fullscreen |
-            | `P` | Picture-in-Picture |
-            | `A` | Toggle Auto-Scroll |
-            | `R` | Refresh / Reload Feed |
 
             ---
             *Authored and maintained with ❤️ by [@benedictusrey](https://github.com/benedictusrey)*

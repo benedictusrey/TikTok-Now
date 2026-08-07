@@ -11,24 +11,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Initial public release of **TikTok-Now** desktop application for Windows, macOS, and Linux.
 - **Tauri v2 + Rust architecture**: Sub-10 MB standalone executable binary targeting `https://www.tiktok.com/`.
 - **IntersectionObserver Autoplay Engine**: Automatic playback of focused feed videos; background videos pause to conserve resources.
-- **Full Keyboard Shortcuts Suite**:
-  | Key | Action |
-  |---|---|
-  | `Space` | Play / Pause |
-  | `J` / `↓` | Next Video |
-  | `K` / `↑` | Previous Video |
-  | `←` / `→` | Rewind / Fast-Forward 5s |
-  | `M` | Mute / Unmute |
-  | `[` / `]` | Volume Down / Up |
-  | `L` | Like Video |
-  | `F` | Toggle Fullscreen |
-  | `P` | Picture-in-Picture |
-  | `A` | Toggle Auto-Scroll |
-  | `R` | Refresh / Reload Feed |
-- **Floating Toast Notifications**: Keyboard action feedback overlaid on-screen.
+- **Official TikTok Buttons Integration**: Native integration with official TikTok video controls (Like, Comment, Bookmark, Share).
+- **Floating Toast Notifications**: Action feedback overlaid on-screen.
 - **System Tray**: Always-running tray icon with full feed navigation submenu (For You, Following, Friends, Explore, Live, Upload), playback controls, and settings.
 - **OAuth Popup Auto-Close**: Login flow opens a slim popup that closes automatically once the user is authenticated; main window reloads.
-- **Seamless About Modal**: In-page overlay (not a separate window) with app info and keyboard cheatsheet, launched from the tray.
+- **Seamless About Modal**: In-page overlay (not a separate window) with app info and author credits, launched from the tray.
 - **Default Window Size**: 1250 × 900, centered on launch.
 - **Always-on-Top Pin**: Toggle from tray menu.
 - **Picture-in-Picture**: Via tray menu or `P` key.

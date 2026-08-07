@@ -33,6 +33,20 @@
 
 ---
 
+## 🧭 Table of Contents
+
+- [🌟 Features & Capabilities](#-what-tiktok-now-adds)
+- [⚖️ Web vs TikTok-Now Comparison](#️-tiktok-now-and-the-official-web-experience)
+- [⚡ Efficiency & Performance](#-observed-resource-efficiency)
+- [📦 Download & Installation](#-download--platform-support)
+- [🔒 Security Architecture](#-security--privacy-architecture)
+- [🚀 GitHub Desktop & Cloud Publishing](#-publishing-with-github-desktop--github-cloud-cicd)
+- [📚 Project Documentation](#-documentation)
+- [🤝 Community & Contributing](#-contributing--community)
+- [👤 Author & License](#-author-and-license)
+
+---
+
 ## 🌟 What TikTok-Now adds
 
 <p align="center">
@@ -157,9 +171,22 @@ You do **not** need a physical Mac or Linux machine to build macOS and Linux bin
 
 ## 📚 Documentation
 
-- [Release Notes](RELEASE_NOTES.md)
-- [Changelog](CHANGELOG.md)
-- [GitHub Actions Release Workflow](.github/workflows/release.yml)
+- 📋 [Release Notes](RELEASE_NOTES.md) — Summary of features & assets in current release.
+- 📜 [Changelog](CHANGELOG.md) — Complete chronological history of additions & fixes.
+- 🤝 [Contributing Guidelines](CONTRIBUTING.md) — How to set up locally, build, and submit PRs.
+- 🛡️ [Security Policy](SECURITY.md) — Data privacy architecture & vulnerability reporting.
+- ⚙️ [GitHub Actions Release Workflow](.github/workflows/release.yml) — Multi-platform cloud build pipeline.
+
+---
+
+## 🤝 Contributing & Community
+
+Contributions, feature requests, and bug reports are warmly welcomed!
+
+- 🐛 **Found a bug?** Open an issue on [GitHub Issues](https://github.com/benedictusrey/TikTok-Now/issues).
+- 💡 **Have an idea?** Share your feedback or suggest features.
+- 🛠️ **Want to code?** Read our [Contributing Guide](CONTRIBUTING.md) to get started building locally.
+- ⭐ **Like the project?** Give **TikTok-Now** a star on GitHub to show your support!
 
 ---
 

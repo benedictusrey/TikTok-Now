@@ -161,7 +161,7 @@ pub fn report_audio_state() {
             let peak = session
                 .cast::<IAudioMeterInformation>()
                 .ok()
-                .and_then(|m| unsafe { m.GetPeakValue().ok() })
+                .and_then(|m| m.GetPeakValue().ok())
                 .unwrap_or(-1.0);
             eprintln!(
                 "[TikTok-Now] Audio state: pid={} muted={} volume={:.2} peak={:.4}",

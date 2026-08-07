@@ -31,6 +31,12 @@ moka = { version = "0.12", features = ["future"] }
 
 thiserror = "1"
 open = "5.3"
+
+# Windows-only: Core Audio session mute/unmute for the process tree (audio.rs).
+# MUST stay target-gated — the `windows` crate pins windows-future 0.2.1, whose
+# non-Windows code paths fail to compile against windows-core 0.61 (imp module
+# is #[cfg(windows)]). Ungated, it broke the macOS/Linux CI builds.
+[target.'cfg(windows)'.dependencies]
 windows = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_Media_Audio",

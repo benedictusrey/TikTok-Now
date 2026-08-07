@@ -1,3 +1,4 @@
+#[cfg(windows)]
 mod audio;
 mod commands;
 mod db;
@@ -82,6 +83,7 @@ fn pause_media_for_hidden(w: &tauri::WebviewWindow) {
             eprintln!("[TikTok-Now] Watchdog recheck: {}", report);
         });
     });
+    #[cfg(windows)]
     if audio::set_app_audio_mute(true) {
         eprintln!("[TikTok-Now] Watchdog: audio sessions muted");
     } else {
@@ -95,6 +97,7 @@ fn resume_media_for_visible(w: &tauri::WebviewWindow) {
     let _ = w.eval_with_callback(REPORT_JS, |report| {
         eprintln!("[TikTok-Now] Watchdog visible report: {}", report);
     });
+    #[cfg(windows)]
     if audio::set_app_audio_mute(false) {
         eprintln!("[TikTok-Now] Watchdog: audio sessions unmuted");
     }
@@ -1152,7 +1155,9 @@ pub fn run() {
                         w.is_minimized().unwrap_or(true) || !w.is_visible().unwrap_or(false)
                     };
                     let mut last_hidden = state_hidden();
+                    #[cfg(windows)]
                     let mut unmute_ticks = 0u32;
+                    #[cfg(windows)]
                     let mut startup_unmuted = false;
                     let mut startup_ticks = 0u32;
                     let mut startup_reported = false;
@@ -1167,17 +1172,21 @@ pub fn run() {
                         // app would be silent while the page plays fine. Retry the
                         // unmute until a session actually exists (the WebView2
                         // session appears seconds after launch), capped at ~32 s.
-                        if !startup_unmuted {
-                            unmute_ticks += 1;
-                            if unmute_ticks >= 3 && !hidden {
-                                if audio::set_app_audio_mute(false) {
-                                    startup_unmuted = true;
-                                    eprintln!("[TikTok-Now] Watchdog: startup unmute (cleared persisted session mute)");
-                                    // Immediate evidence: session state right after clearing.
-                                    audio::report_audio_state();
-                                } else if unmute_ticks >= 60 {
-                                    startup_unmuted = true;   // ~48 s: no session appeared — nothing to clear
-                                    eprintln!("[TikTok-Now] Watchdog: startup unmute gave up (no session appeared)");
+                        // (Windows-only: audio.rs / Core Audio is cfg(windows).)
+                        #[cfg(windows)]
+                        {
+                            if !startup_unmuted {
+                                unmute_ticks += 1;
+                                if unmute_ticks >= 3 && !hidden {
+                                    if audio::set_app_audio_mute(false) {
+                                        startup_unmuted = true;
+                                        eprintln!("[TikTok-Now] Watchdog: startup unmute (cleared persisted session mute)");
+                                        // Immediate evidence: session state right after clearing.
+                                        audio::report_audio_state();
+                                    } else if unmute_ticks >= 60 {
+                                        startup_unmuted = true;   // ~48 s: no session appeared — nothing to clear
+                                        eprintln!("[TikTok-Now] Watchdog: startup unmute gave up (no session appeared)");
+                                    }
                                 }
                             }
                         }
@@ -1205,6 +1214,7 @@ pub fn run() {
                                         eprintln!("[TikTok-Now] Watchdog startup report: {}", report);
                                     });
                                     // OS-level evidence: session mute + master volume.
+                                    #[cfg(windows)]
                                     audio::report_audio_state();
                                 }
                             }

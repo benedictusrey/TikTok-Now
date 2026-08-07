@@ -44,7 +44,7 @@
 
 <p align="center">
   <img src="docs/assets/tiktoknow-showcase.png" width="880" alt="TikTok-Now Interface & Ease of Use"><br>
-  <em>Figure 2: Product showcase demonstrating TikTok-Now's dark-mode viewing canvas, seamless integration with official TikTok video controls (like, comment, bookmark, share), background system tray behavior, and sub-10 MB native Rust + Tauri v2 architecture.</em>
+  <em>Figure 2: Product showcase demonstrating TikTok-Now's dark-mode viewing canvas, seamless integration with official TikTok video controls (like, comment, bookmark, share), background system tray behavior, and sub-10 MB binary size built on native Rust + Tauri v2 architecture.</em>
 </p>
 
 <br>

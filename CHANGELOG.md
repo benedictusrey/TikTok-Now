@@ -9,7 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Initial public release of **TikTok-Now** desktop application for Windows, macOS, and Linux.
-- **Tauri v2 + Rust architecture**: Sub-10 MB native WebView wrapper targeting `https://www.tiktok.com/`.
+- **Tauri v2 + Rust architecture**: Sub-10 MB standalone executable binary targeting `https://www.tiktok.com/`.
 - **IntersectionObserver Autoplay Engine**: Automatic playback of focused feed videos; background videos pause to conserve resources.
 - **Full Keyboard Shortcuts Suite**:
   | Key | Action |

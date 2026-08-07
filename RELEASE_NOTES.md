@@ -6,7 +6,7 @@
 
 ## Highlights
 
-- ⚡ **Sub-10 MB Footprint**: Powered by **Tauri v2 + Rust**. Renders natively without bundling Chromium or Node.js.
+- ⚡ **Sub-10 MB Binary Size**: Powered by **Tauri v2 + Rust**. Renders natively without bundling Chromium or Node.js.
 - 🎯 **Optimized Geometry**: Starts cleanly at **1250 × 900** resolution, centered automatically on launch.
 - 🎥 **Smart Autoplay Engine**: Uses `IntersectionObserver` to automatically pause videos when scrolled out of view, reducing CPU and memory consumption.
 - 🔐 **Isolated OAuth Login Popup**: Dedicated window handler for Google, Apple, and TikTok sign-in popups; automatically detects authentication success and closes cleanly.

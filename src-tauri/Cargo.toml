@@ -2,7 +2,7 @@
 name = "tiktok-now"
 version = "1.0.0"
 description = "TikTok-Now Desktop Client (Powered by Tauri v2 + Rust)"
-authors = ["Benedictus Rey (@benedictusrey)"]
+authors = ["@benedictusrey"]
 edition = "2021"
 
 [lib]

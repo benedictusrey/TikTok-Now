@@ -40,6 +40,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Backup & personal developer notes
+/backup/
+/.freebuff/
+
 # Environment variables
 .env
 .env.*

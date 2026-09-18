@@ -85,6 +85,9 @@ html, body {
   height: 26px;
 }
 
+/* v2.1.0: run the splash animations on the compositor (transform/opacity only).
+   Animating `height` forces layout on every frame on low-end machines; the
+   visual is identical but the main thread stays free for the redirect. */
 .equalizer .bar {
   width: 4px;
   background: linear-gradient(180deg, var(--cyan-neon), var(--pink-neon));
@@ -99,8 +102,14 @@ html, body {
 .equalizer .bar:nth-child(5) { height: 12px; animation-delay: 0.4s; }
 
 @keyframes eqBounce {
-  0% { height: 6px; }
-  100% { height: 26px; }
+  0%   { transform: scaleY(0.23); }
+  100% { transform: scaleY(1); }
+}
+
+/* Bars now scale from their own bottom edge like the old height animation. */
+.equalizer .bar {
+  transform-origin: bottom;
+  will-change: transform;
 }
 
 .brand-header {

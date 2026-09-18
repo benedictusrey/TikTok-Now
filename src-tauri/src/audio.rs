@@ -9,6 +9,9 @@
 use std::collections::HashSet;
 
 use windows::core::Interface;
+// Only used by the debug-only diagnostic `report_audio_state` — must be gated
+// the same way, or release builds warn on the unused import.
+#[cfg(debug_assertions)]
 use windows::Win32::Media::Audio::Endpoints::IAudioMeterInformation;
 use windows::Win32::Media::Audio::{
     eMultimedia, eRender, IAudioSessionControl2, IAudioSessionManager2, IMMDeviceEnumerator,
@@ -33,8 +36,10 @@ fn process_tree() -> HashSet<u32> {
             return tree;
         };
         let mut all: Vec<(u32, u32)> = Vec::new(); // (pid, parent_pid)
-        let mut entry = PROCESSENTRY32W::default();
-        entry.dwSize = std::mem::size_of::<PROCESSENTRY32W>() as u32;
+        let mut entry = PROCESSENTRY32W {
+            dwSize: std::mem::size_of::<PROCESSENTRY32W>() as u32,
+            ..Default::default()
+        };
         if Process32FirstW(snapshot, &mut entry).is_ok() {
             loop {
                 all.push((entry.th32ProcessID, entry.th32ParentProcessID));
@@ -109,6 +114,8 @@ pub fn set_app_audio_mute(mute: bool) -> bool {
 /// Diagnostic: print every audio session owned by this app's process tree with
 /// its MUTE flag and MASTER VOLUME. Used at cold start to catch "page element
 /// says unmuted but the OS session is silent" cases (mixer volume at 0, etc.).
+/// v2.1.0: debug builds only — release builds must not log audio state.
+#[cfg(debug_assertions)]
 pub fn report_audio_state() {
     unsafe {
         if CoInitializeEx(None, COINIT_MULTITHREADED).0 < 0 {

@@ -7,20 +7,11 @@
     "urls": [
       "https://tiktok.com/*",
       "https://*.tiktok.com/*",
-      "https://www.tiktok.com/*",
-      "https://accounts.google.com/*",
-      "https://appleid.apple.com/*",
-      "https://*.facebook.com/*",
-      "https://*.twitter.com/*"
+      "https://www.tiktok.com/*"
     ]
   },
   "permissions": [
     "core:default",
-    "http:default",
-    "notification:default",
-    "allow-check-auth",
-    "allow-jump-to-external",
-    "allow-navigate-to",
-    "allow-get-app-info"
+    "allow-jump-to-external"
   ]
 }

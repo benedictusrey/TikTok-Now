@@ -4,6 +4,53 @@ use tauri::{
     AppHandle, Manager,
 };
 
+/// Restore the main window to the front if it is minimized, hidden or
+/// unfocused (the user clicked the tray expecting the app to come forward).
+/// Only hide when it is visible AND focused (a true toggle).
+///
+/// v2.1.0 UX fix: restoring NO LONGER resizes and re-centers the window.
+/// The old code forced 1250×900 + `center()` on every restore, silently
+/// destroying a window the user had moved or resized.
+fn restore_window(main: &tauri::WebviewWindow) {
+    let _ = main.unminimize();
+    let _ = main.show();
+    // v2.1.0: a `--minimized` autostart never got its exact work-area fit
+    // (the fit skips hidden windows — DWM metrics are unreliable there),
+    // so apply it here on the first restore. Idempotent: the latch inside
+    // makes every later call a no-op, so user resizes are never fought.
+    crate::geometry::fit_window_to_work_area(main);
+    let _ = main.set_focus();
+}
+
+/// Hide-to-tray with the mandatory pause-first (deterministic ordering).
+fn hide_window(main: &tauri::WebviewWindow) {
+    let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
+    let _ = main.hide();
+}
+
+/// Evaluate a full JS statement on the page unless we are on the Messages/DM
+/// view, so DM-page users never get stray feed actions (v2.1.0: playback
+/// items are inert there). Wrapped in an IIFE — WebView2's ExecuteScript
+/// rejects top-level `return`.
+fn eval_feed_helper(main: &tauri::WebviewWindow, statement: &str) {
+    let _ = main.eval(format!(
+        "(function(){{ if (window.__tiktoknow_is_dm && window.__tiktoknow_is_dm()) return; {statement} }})()"
+    ));
+}
+
+/// Keep the always-on-top and autostart menu labels truthful.
+/// v2.1.0: the state was previously read/written only inside the click
+/// handler, so any external change left a stale checkmark behind.
+fn sync_menu_state(app: &AppHandle, always_top: &tauri::menu::MenuItem<tauri::Wry>, autostart: &tauri::menu::MenuItem<tauri::Wry>) {
+    if let Some(main) = app.get_webview_window("main") {
+        let pinned = main.is_always_on_top().unwrap_or(false);
+        let _ = always_top.set_text(if pinned { "📌 Pinned Always-On-Top (click to unpin)" } else { "📌 Pin Always-On-Top" });
+    }
+    use tauri_plugin_autostart::ManagerExt;
+    let enabled = app.autolaunch().is_enabled().unwrap_or(false);
+    let _ = autostart.set_text(if enabled { "🚀 Launch on Startup: ON" } else { "🚀 Launch on Startup: OFF" });
+}
+
 pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     // ── Primary Window Controls ──
     let show_hide = MenuItemBuilder::with_id("show_hide", "Show / Hide TikTok-Now").build(app)?;
@@ -17,6 +64,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let friends = MenuItemBuilder::with_id("friends", "🤝 Friends Feed").build(app)?;
     let explore = MenuItemBuilder::with_id("explore", "🔍 Explore / Search").build(app)?;
     let live = MenuItemBuilder::with_id("live", "🔴 Live Stream Feed").build(app)?;
+    // v2.1.0: TikTok's Direct Messages page is now a first-class destination.
+    let messages = MenuItemBuilder::with_id("messages", "💬 Direct Messages").build(app)?;
     let upload = MenuItemBuilder::with_id("upload", "➕ Upload Video").build(app)?;
 
     let feeds_submenu = SubmenuBuilder::new(app, "🎵 TikTok Feeds")
@@ -25,6 +74,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .item(&friends)
         .item(&explore)
         .item(&live)
+        .item(&messages)
         .item(&upload)
         .build()?;
 
@@ -60,7 +110,6 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let copy_url = MenuItemBuilder::with_id("copy_url", "📋 Copy Current Video Link").build(app)?;
     let capture_frame = MenuItemBuilder::with_id("capture_frame", "📸 Capture Video Frame (S)").build(app)?;
     let autostart = MenuItemBuilder::with_id("autostart", "🚀 Launch on Startup").build(app)?;
-    let autostart_handle = autostart.clone();
     let clear_cache = MenuItemBuilder::with_id("clear_cache", "🧹 Clear Web Cache").build(app)?;
     let about = MenuItemBuilder::with_id("about", "ℹ️ About TikTok-Now").build(app)?;
     let sep1 = tauri::menu::PredefinedMenuItem::separator(app)?;
@@ -82,8 +131,16 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .item(&quit)
         .build()?;
 
-    let icon = app.default_window_icon().cloned().unwrap();
+    // Initial truth for the stateful labels.
+    sync_menu_state(app, &always_top, &autostart);
 
+    let icon = app
+        .default_window_icon()
+        .cloned()
+        .expect("TikTok-Now bundle always ships a window icon");
+
+    let always_top_for_events = always_top.clone();
+    let autostart_for_events = autostart.clone();
     let _tray = TrayIconBuilder::new()
         .icon(icon)
         .menu(&menu)
@@ -100,14 +157,9 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     let visible = main.is_visible().unwrap_or(false);
                     let focused = main.is_focused().unwrap_or(false);
                     if minimized || !visible || !focused {
-                        let _ = main.unminimize();
-                        let _ = main.set_size(tauri::Size::Logical(tauri::LogicalSize { width: 1250.0, height: 900.0 }));
-                        let _ = main.center();
-                        let _ = main.show();
-                        let _ = main.set_focus();
+                        restore_window(&main);
                     } else {
-                        let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
-                        let _ = main.hide();
+                        hide_window(&main);
                     }
                 }
             }
@@ -115,6 +167,17 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(main) = app.get_webview_window("main") {
                     let current = main.is_always_on_top().unwrap_or(false);
                     let _ = main.set_always_on_top(!current);
+                    // v2.1.0 UX: previously a silent toggle — now the menu label
+                    // and an in-page toast both report the new state.
+                    let _ = always_top_for_events.set_text(if !current {
+                        "📌 Pinned Always-On-Top (click to unpin)"
+                    } else {
+                        "📌 Pin Always-On-Top"
+                    });
+                    let _ = main.eval(format!(
+                        "if (window.showToast) window.showToast('📌 Always-On-Top: {}');",
+                        if !current { "ON" } else { "OFF" }
+                    ));
                 }
             }
             "reload_feed" => {
@@ -122,103 +185,86 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     let _ = main.eval("window.location.reload();");
                 }
             }
-            // Feeds
-            "for_you" => {
+            // ── Feed navigation (single audited path per target) ──
+            // v2.1.0: every entry also SHOWS + FOCUSES the window; the old code
+            // navigated a hidden window and the user saw nothing happen.
+            // URLs resolve through `navigation::feed_url` — one source of truth
+            // shared with the IPC command (v2.1.0 audit round 2).
+            "for_you" | "following" | "friends" | "explore" | "live" | "messages" | "upload" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/foryou';");
+                    restore_window(&main);
+                    let url = crate::commands::navigation::feed_url(event.id.as_ref());
+                    let _ = main.eval(format!("window.location.href = '{}';", url));
                 }
             }
-            "following" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/following';");
-                }
-            }
-            "friends" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/friends';");
-                }
-            }
-            "explore" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/explore';");
-                }
-            }
-            "live" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/live';");
-                }
-            }
-            "upload" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval("window.location.href = 'https://www.tiktok.com/upload';");
-                }
-            }
-            // Playback
+            // ── Playback (inert on the Messages page — guarded per-call) ──
             "toggle_play" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.togglePlayPause) window.togglePlayPause();");
+                    eval_feed_helper(&main, "if (window.togglePlayPause) window.togglePlayPause();");
                 }
             }
             "next_video" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });");
+                    eval_feed_helper(
+                        &main,
+                        "window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });",
+                    );
                 }
             }
             "prev_video" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });");
+                    eval_feed_helper(
+                        &main,
+                        "window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });",
+                    );
                 }
             }
             "seek_back" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.seekBy) window.seekBy(-5);");
+                    eval_feed_helper(&main, "if (window.seekBy) window.seekBy(-5);");
                 }
             }
             "seek_forward" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.seekBy) window.seekBy(5);");
+                    eval_feed_helper(&main, "if (window.seekBy) window.seekBy(5);");
                 }
             }
             "toggle_mute" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.toggleMute) window.toggleMute();");
+                    eval_feed_helper(&main, "if (window.toggleMute) window.toggleMute();");
                 }
             }
             "toggle_autoscroll" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.toggleAutoScroll) window.toggleAutoScroll();");
+                    eval_feed_helper(&main, "if (window.toggleAutoScroll) window.toggleAutoScroll();");
                 }
             }
             "toggle_pip" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if (window.togglePip) window.togglePip();");
+                    eval_feed_helper(&main, "if (window.togglePip) window.togglePip();");
                 }
             }
-            "speed_10" => {
+            "speed_10" | "speed_15" | "speed_20" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("var vids = document.querySelectorAll('video'); vids.forEach(v => v.playbackRate = 1.0);");
-                }
-            }
-            "speed_15" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("var vids = document.querySelectorAll('video'); vids.forEach(v => v.playbackRate = 1.5);");
-                }
-            }
-            "speed_20" => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("var vids = document.querySelectorAll('video'); vids.forEach(v => v.playbackRate = 2.0);");
+                    let rate = match event.id.as_ref() {
+                        "speed_15" => "1.5",
+                        "speed_20" => "2.0",
+                        _ => "1.0",
+                    };
+                    eval_feed_helper(
+                        &main,
+                        &format!(
+                            "var vids = document.querySelectorAll('video'); vids.forEach(function(v){{ v.playbackRate = {rate}; }});"
+                        ),
+                    );
+                    // The toast is feed-only too — a DM-page user would otherwise
+                    // get a speed confirmation for an action that never happened.
+                    eval_feed_helper(
+                        &main,
+                        &format!(
+                            "if (window.showToast) window.showToast('⚡ Playback speed: {rate}x');"
+                        ),
+                    );
                 }
             }
             "copy_url" => {
@@ -228,7 +274,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "capture_frame" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("if(window.captureFrame) window.captureFrame();");
+                    let _ = main.eval("if (window.captureFrame) window.captureFrame();");
                 }
             }
             "autostart" => {
@@ -241,12 +287,13 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                     let _ = autol.enable();
                 }
                 let now_enabled = !was_enabled;
-                let _ = autostart_handle.set_text(format!(
-                    "🚀 Launch on Startup: {}",
-                    if now_enabled { "ON" } else { "OFF" }
-                ));
+                let _ = autostart_for_events.set_text(if now_enabled {
+                    "🚀 Launch on Startup: ON"
+                } else {
+                    "🚀 Launch on Startup: OFF"
+                });
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval(&format!(
+                    let _ = main.eval(format!(
                         "if (window.showToast) window.showToast('🚀 Launch on Startup: {}');",
                         if now_enabled { "ON" } else { "OFF" }
                     ));
@@ -254,31 +301,42 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             }
             "clear_cache" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.eval("localStorage.clear(); sessionStorage.clear(); window.location.reload();");
+                    // v2.1.0: also clears Cache Storage + service workers — the
+                    // old one-liner left them behind, so "Clear Web Cache" often
+                    // changed nothing. All three namespaces, then reload.
+                    let _ = main.eval(
+                        "(function(){ try { localStorage.clear(); sessionStorage.clear(); } catch(e) {} \
+                         if (window.caches && caches.keys) { caches.keys().then(function(ks){ ks.forEach(function(k){ caches.delete(k); }); }); } \
+                         if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) { navigator.serviceWorker.getRegistrations().then(function(rs){ rs.forEach(function(r){ r.unregister(); }); }); } \
+                         window.location.reload(); })();",
+                    );
                 }
             }
             "about" => {
                 if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.show();
-                    let _ = main.set_focus();
-                    let _ = main.eval(r##"
-(function() {
+                    restore_window(&main);
+                    // v2.1.0: the version string now comes from the crate at
+                    // runtime — the previous hardcoded 'v2.0.0' could not drift
+                    // again on the next bump.
+                    let about_js = format!(
+                        r##"
+(function() {{
   var ID = '__tiktoknow_about';
   var old = document.getElementById(ID);
-  if (old) { old.remove(); return; }
+  if (old) {{ old.remove(); return; }}
 
-  function el(tag, css, extra) {
+  function el(tag, css, extra) {{
     var e = document.createElement(tag);
     if (css) e.style.cssText = css;
     if (extra) Object.assign(e, extra);
     return e;
-  }
-  function btn(label, cssTxt) {
+  }}
+  function btn(label, cssTxt) {{
     var b = el('button', cssTxt);
     b.textContent = label;
-    b.onclick = function() { document.getElementById(ID).remove(); };
+    b.onclick = function() {{ document.getElementById(ID).remove(); }};
     return b;
-  }
+  }}
 
   var overlay = el('div',
     'position:fixed;top:0;left:0;width:100vw;height:100vh;' +
@@ -287,7 +345,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     'justify-content:center;z-index:2147483647;' +
     'font-family:system-ui,-apple-system,Segoe UI,sans-serif;');
   overlay.id = ID;
-  overlay.onclick = function(e) { if(e.target===overlay) overlay.remove(); };
+  overlay.onclick = function(e) {{ if(e.target===overlay) overlay.remove(); }};
 
   var card = el('div',
     'background:#0d0e15;border:1px solid #FF007F;border-radius:24px;' +
@@ -328,7 +386,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
   card.appendChild(sub);
 
   var ver = el('p', 'color:#8e8ea0;font-size:0.78rem;margin-bottom:1.2rem;');
-  ver.textContent = 'v2.0.0 • Powered by Rust & Tauri v2';
+  ver.textContent = 'v{VERSION} • Powered by Rust & Tauri v2';
   card.appendChild(ver);
 
   // Author
@@ -337,15 +395,15 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
   authorLink.textContent = '@benedictusrey';
   authorLink.href = 'https://github.com/benedictusrey';
   authorLink.style.cssText = 'color:#00F2FE;text-decoration:none;font-weight:bold;cursor:pointer;';
-  authorLink.onclick = function(e) {
+  authorLink.onclick = function(e) {{
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (typeof window.__tiktoknow_open === 'function') {
+    if (typeof window.__tiktoknow_open === 'function') {{
       window.__tiktoknow_open('https://github.com/benedictusrey');
-    } else {
+    }} else {{
       window.open('https://github.com/benedictusrey', '_blank');
-    }
-  };
+    }}
+  }};
   author.appendChild(document.createTextNode('Authored and maintained with \u2764\ufe0f by '));
   author.appendChild(authorLink);
   card.appendChild(author);
@@ -359,8 +417,11 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
   overlay.appendChild(card);
   document.body.appendChild(overlay);
-})();
-                    "##);
+}})();
+                    "##,
+                        VERSION = env!("CARGO_PKG_VERSION"),
+                    );
+                    let _ = main.eval(&about_js);
                 }
             }
             "quit" => {
@@ -369,7 +430,12 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click { button, button_state: MouseButtonState::Up, .. } = event {
+            if let TrayIconEvent::Click {
+                button,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
                 if button == MouseButton::Left {
                     let app = tray.app_handle();
                     if let Some(main) = app.get_webview_window("main") {
@@ -380,12 +446,9 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                         let visible = main.is_visible().unwrap_or(false);
                         let focused = main.is_focused().unwrap_or(false);
                         if minimized || !visible || !focused {
-                            let _ = main.unminimize();
-                            let _ = main.show();
-                            let _ = main.set_focus();
+                            restore_window(&main);
                         } else {
-                            let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
-                            let _ = main.hide();
+                            hide_window(&main);
                         }
                     }
                 }

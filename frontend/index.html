@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>TikTok-Now</title>
+  <!-- v2.1.0: warm up the TLS+DNS connection to TikTok while the splash animates,
+       so the real navigation reuses an open socket instead of starting cold. -->
+  <link rel="preconnect" href="https://www.tiktok.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.tiktok.com">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -50,7 +55,7 @@
 
     <!-- Footer Credit -->
     <div class="footer-credit">
-      TikTok-Now Desktop v2.0.0 &bull; Powered by Tauri v2 + Rust
+      TikTok-Now Desktop v2.1.0 &bull; Powered by Tauri v2 + Rust
     </div>
   </div>
 

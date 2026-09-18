@@ -7,12 +7,7 @@ fn main() {
     // and Tauri REJECTS every invoke coming from a remote origin
     // (https://www.tiktok.com) with "Command ... not allowed by ACL".
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(
-        tauri_build::AppManifest::new().commands(&[
-            "check_auth",
-            "jump_to_external",
-            "navigate_to",
-            "get_app_info",
-        ]),
+        tauri_build::AppManifest::new().commands(&["jump_to_external"]),
     ))
     .expect("failed to run tauri-build");
 }

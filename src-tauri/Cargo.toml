@@ -1,6 +1,6 @@
 [package]
 name = "tiktok-now"
-version = "2.0.0"
+version = "2.1.0"
 description = "TikTok-Now Desktop Client (Powered by Tauri v2 + Rust)"
 authors = ["@benedictusrey"]
 edition = "2021"
@@ -18,19 +18,20 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = ["tray-icon", "devtools"] }
-tauri-plugin-shell = "2"
-tauri-plugin-http = "2"
-tauri-plugin-store = "2"
-tauri-plugin-notification = "2"
 tauri-plugin-autostart = "2"
 
 serde = { version = "1", features = ["derive"] }
 
-rusqlite = { version = "0.31", features = ["bundled"] }
-moka = { version = "0.12", features = ["future"] }
-
 thiserror = "1"
 open = "5.3"
+
+# v2.1.0 dependency audit — removed as dead code:
+#   tauri-plugin-shell   (never registered; `open` crate does the shell work)
+#   tauri-plugin-http    (registered, no permission usage, no fetches)
+#   tauri-plugin-store   (registered, no store ever created)
+#   tauri-plugin-notification (registered, no notification ever sent)
+#   rusqlite (bundled SQLite) + moka + the db/state modules they fed —
+#   `AppState` was managed but never read by a single command.
 
 # Windows-only: Core Audio session mute/unmute for the process tree (audio.rs).
 # MUST stay target-gated — the `windows` crate pins windows-future 0.2.1, whose
@@ -39,6 +40,7 @@ open = "5.3"
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.61", features = [
     "Win32_Foundation",
+    "Win32_Graphics_Dwm",
     "Win32_Media_Audio",
     "Win32_Media_Audio_Endpoints",
     "Win32_System_Com",

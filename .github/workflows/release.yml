@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v1.0.1)'
+        description: 'Release tag (e.g. v2.1.0)'
         required: true
-        default: 'v2.0.0'
+        default: 'v2.1.0'
 
 permissions:
   contents: write
@@ -17,10 +17,11 @@ permissions:
 env:
   CARGO_HTTP_CHECK_REVOKE: "false"
   CARGO_INCREMENTAL: "0"
+  CARGO_TERM_COLOR: always
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
-  # Windows Build
+  # Windows Build (x86_64)
   # ─────────────────────────────────────────────────────────────────────────
   build-windows:
     name: 🪟 Build — Windows (x86_64)
@@ -34,13 +35,13 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Cache Cargo registry & build artifacts
+      - name: Cache Cargo dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: windows-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: windows-cargo-
 
@@ -56,7 +57,7 @@ jobs:
           $dst = "TikTok-Now_${tag}_windows-x86_64.exe"
           Copy-Item $src $dst
           $hash = (Get-FileHash $dst -Algorithm SHA256).Hash.ToLower()
-          "$dst  sha256:$hash" | Out-File -Encoding utf8 checksums-windows.txt
+          "$hash  $dst" | Out-File -Encoding ascii checksums-windows.txt
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -77,18 +78,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Rust stable toolchain + targets
+      - name: Install Rust stable toolchain + cross targets
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin,aarch64-apple-darwin
 
-      - name: Cache Cargo registry & build artifacts
+      - name: Cache Cargo dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: macos-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: macos-cargo-
 
@@ -102,10 +103,16 @@ jobs:
 
       - name: Create Universal Binary with lipo
         run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
           lipo -create \
             src-tauri/target/x86_64-apple-darwin/release/TikTok-Now \
             src-tauri/target/aarch64-apple-darwin/release/TikTok-Now \
-            -output TikTok-Now_${{ inputs.tag || github.ref_name }}_macos-universal
+            -output "TikTok-Now_${TAG}_macos-universal"
+
+      - name: Verify Universal Binary Architecture
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          lipo -info "TikTok-Now_${TAG}_macos-universal"
 
       - name: Make executable & checksum
         run: |
@@ -133,7 +140,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install system dependencies (WebKit2GTK + Tauri v2 requirements)
+      - name: Install system dependencies (WebKit2GTK + Tauri requirements)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
@@ -147,13 +154,13 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
 
-      - name: Cache Cargo registry & build artifacts
+      - name: Cache Cargo dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
           key: linux-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: linux-cargo-
 
@@ -180,7 +187,7 @@ jobs:
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────────────────────
-  # Publish GitHub Release (all platforms combined)
+  # Publish GitHub Release (Consolidated Multi-Platform)
   # ─────────────────────────────────────────────────────────────────────────
   release:
     name: 🚀 Publish GitHub Release
@@ -196,7 +203,7 @@ jobs:
           path: dist/
           merge-multiple: true
 
-      - name: Combine checksums into one file
+      - name: Combine checksums into unified checksums.txt
         run: |
           cat dist/checksums-windows.txt dist/checksums-macos.txt dist/checksums-linux.txt > dist/checksums.txt
 
@@ -212,49 +219,40 @@ jobs:
           body: |
             ## 🎬 TikTok-Now Desktop — ${{ steps.tag.outputs.value }}
 
-            A high-performance TikTok desktop wrapper powered by **Rust + Tauri v2**.
-            Sub-10 MB binary. No Electron. No Node.js. Pure speed.
+            A high-performance, ultra-lightweight desktop experience for TikTok powered by **Rust + Tauri v2**.
+            Sub-10 MB standalone executable. Zero Electron bloat. Zero telemetry. Pure speed.
 
             ---
 
-            ### 🚀 What's new since v1.0.0
+            ### 🚀 Highlights in v2.1.0
 
-            - 🖼️ **Drag to browse photo posts** — swipe left/right through multi-image carousels (no more tiny arrow buttons); single-photo posts are smart: dragging never pauses the slideshow or selects the image (release clicks after a drag are suppressed).
-            - 🔇 **True pause on minimize & close** — audio stops the instant the window is hidden, and resumes where you left off on restore (Rust watchdog + OS-level audio-session mute = guaranteed silence). Audio-only feeds restore reliably too.
-            - 🖱️ **Tray-icon restore** — the tray click always brings the app back to the front, even from minimized.
-            - 🔉 **Autoplay with sound at 50% volume** — every fresh launch starts unmuted (TikTok's own re-mute is re-enforced during a startup grace window, and a stale Windows session mute is cleared automatically).
-            - ⌨️ **Working shortcuts & autostart** — `M` mute, `P` picture-in-picture, `S` capture frame, `←`/`→` seek (or flip photo slides), `A` auto-scroll, `R` refresh, plus a real "Launch on Startup".
-            - ⚡ **Leaner & more reliable** — removed 9 unused dependencies, fixed close-to-tray races, and a page-script root cause that silently killed features.
-
-            ---
-
-            ### 📦 Downloads
-
-            | Platform | File |
-            |---|---|
-            | 🪟 Windows (x86_64) | `TikTok-Now_${{ steps.tag.outputs.value }}_windows-x86_64.exe` |
-            | 🍎 macOS (Universal — Intel + Apple Silicon) | `TikTok-Now_${{ steps.tag.outputs.value }}_macos-universal` |
-            | 🐧 Linux (x86_64) | `TikTok-Now_${{ steps.tag.outputs.value }}_linux-x86_64` |
-
-            SHA256 checksums are in `checksums.txt`.
-
-            **Windows:** just run the `.exe` — no installation needed.
-            **macOS:** `chmod +x TikTok-Now_*_macos-universal && ./TikTok-Now_*_macos-universal` (you may need to allow it in System Settings › Privacy & Security).
-            **Linux:** `chmod +x TikTok-Now_*_linux-x86_64 && ./TikTok-Now_*_linux-x86_64` (requires `libwebkit2gtk-4.1` and `libgtk-3`).
+            - ⚡ **Near-Instant Launch (350 ms)**: Splash redirect reduced from 2.2s to 350ms via `location.replace` (no splash bounce in back history) with proactive TLS/DNS pre-warming and offline auto-recovery.
+            - 💬 **First-Class Direct Messages**: Dedicated **💬 Direct Messages** tray menu navigation (`/messages`) with a DM-aware engine that guards keyboard inputs, disables synthetic clicks in chat, and skips auto-scroll.
+            - 🪟 **Exact Work-Area Window Fit (1326 × 1032)**: Automatically derived from runtime DWM extended frame bounds and monitor work areas, flush with top of screen and taskbar across 100%, 125%, and 150% DPI scalings.
+            - 🌑 **Flash-Free Transitions**: Dark canvas painted at true document-start (MutationObserver) before the first frame commit, eliminating white/black flashes on startup, tray feed switching, and login popups.
+            - 🔒 **Comprehensive Security Auditing**: Scheme-whitelisted external URL opening (`http`, `https`, `mailto`), exact-domain matching for OAuth popups, zero diagnostic leakage in release builds (`diag!` macro), strict local CSP, and 6 dead dependencies removed.
+            - ✨ **Honest UX Refinements**: Verified clipboard status for "URL copied", non-destructive tray restore, stateful tray labels, and complete cache purging across Cache Storage and service workers.
+            - 🎯 **All Core Features Preserved**: Smart autoplay with sound at 50% on startup, photo carousel dragging, guaranteed pause-on-minimize with OS-level audio session mute, system tray integration, and picture-in-picture.
 
             ---
 
-            ### ✨ Features
-            - 🔥 Full TikTok feed — For You, Following, Friends, Live, Explore
-            - 🎯 Official TikTok buttons integration (Like, Comment, Bookmark, Share)
-            - 📌 Always-on-top pinning · 🖼️ Picture-in-Picture · 📜 Auto-Scroll mode
-            - 🔄 One-click feed refresh from system tray · 🧹 Clear web cache
-            - 🚪 Minimize-to-tray on close (stays running in background)
-            - 🔐 Clean OAuth login flow (popup auto-closes after login)
-            - 🎯 1250 × 900 default window — perfectly sized for TikTok
+            ### 📦 Download Matrix
+
+            | Platform | File | Architecture |
+            | :--- | :--- | :--- |
+            | 🪟 **Windows** | `TikTok-Now_${{ steps.tag.outputs.value }}_windows-x86_64.exe` | x86_64 (Standalone) |
+            | 🍎 **macOS** | `TikTok-Now_${{ steps.tag.outputs.value }}_macos-universal` | Universal (Intel + Apple Silicon) |
+            | 🐧 **Linux** | `TikTok-Now_${{ steps.tag.outputs.value }}_linux-x86_64` | x86_64 (GTK3 + WebKit2GTK 4.1) |
+
+            *Cryptographic SHA-256 hashes for all binaries are provided in `checksums.txt`.*
+
+            ### Quick Execution
+            - **Windows**: Run `TikTok-Now_${{ steps.tag.outputs.value }}_windows-x86_64.exe` directly (no installer needed).
+            - **macOS**: `chmod +x TikTok-Now_${{ steps.tag.outputs.value }}_macos-universal && ./TikTok-Now_${{ steps.tag.outputs.value }}_macos-universal`
+            - **Linux**: `chmod +x TikTok-Now_${{ steps.tag.outputs.value }}_linux-x86_64 && ./TikTok-Now_${{ steps.tag.outputs.value }}_linux-x86_64`
 
             ---
-            *Authored and maintained with ❤️ by [@benedictusrey](https://github.com/benedictusrey)*
+            *Authored and maintained with ❤️ by **Benedictus Reynaldo Hartanto** ([@benedictusrey](https://github.com/benedictusrey))*
           draft: false
           prerelease: false
           files: |

@@ -8,9 +8,9 @@ The security, privacy, and integrity of **TikTok-Now** and its users are our top
 
 | Version | Supported | Security Maintenance |
 | :--- | :---: | :--- |
-| **`2.0.x`** | ✅ | Active security support & bug fixes (current release) |
-| `1.6.x` | ⚠️ | Legacy — maintained only for critical security issues |
-| `< 1.6.0` | ❌ | Pre-release / superseded versions |
+| **`2.1.x`** | ✅ | Active security support & bug fixes (current release) |
+| `2.0.x` | ⚠️ | Maintenance only |
+| `< 2.0.0` | ❌ | Superseded legacy versions |
 
 ---
 
@@ -47,4 +47,4 @@ Thank you for helping keep TikTok-Now secure!
 
 ---
 
-*Authored and maintained with ❤️ by [@benedictusrey](https://github.com/benedictusrey)*
+*Authored and maintained with ❤️ by **Benedictus Reynaldo Hartanto** ([@benedictusrey](https://github.com/benedictusrey))*

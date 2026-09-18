@@ -43,7 +43,7 @@ pub const MIN_INNER_SIZE: (f64, f64) = (800.0, 600.0);
 ///
 /// All measurements are physical pixels; DPI is handled by the OS conversion
 /// APIs, so this is exact at 125 %/150 % scaling too. The width target is the
-/// logical 1252 scaled by the window's real DPI factor. Sizes handed to
+/// logical 1326 scaled by the window's real DPI factor. Sizes handed to
 /// tao's `set_size` are CLIENT sizes (tao applies `AdjustWindowRect` itself —
 /// verified against tao 0.35.3), so the routine computes the client height as
 /// `work_area_height − caption_chrome` and positions the OUTER rect with the
@@ -96,7 +96,7 @@ pub fn fit_window_to_work_area(window: &tauri::WebviewWindow) {
         let wa_w = wa.size.width as i32;
         let wa_h = wa.size.height as i32;
 
-        // The visible WIDTH target: 1252 logical px at the window's real DPI.
+        // The visible WIDTH target: 1326 logical px at the window's real DPI.
         let scale = window.scale_factor().unwrap_or(1.0);
         let visible_w = (DEFAULT_INNER_SIZE.0 * scale).round() as i32;
         let visible_x = wa_x + ((wa_w - visible_w) / 2).max(0);
@@ -225,7 +225,7 @@ pub fn fit_window_to_work_area(window: &tauri::WebviewWindow) {
     }
 }
 
-/// Non-Windows builds keep the plain builder behavior (1252 × 1032, centered
+/// Non-Windows builds keep the plain builder behavior (1326 × 1032, centered
 /// in the work area by `center()`), which is already correct on macOS —
 /// `NSWindow` frames exclude invisible borders and `visibleFrame`-based
 /// centering respects the Dock.

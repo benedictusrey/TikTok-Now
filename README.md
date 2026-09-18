@@ -64,6 +64,7 @@ TikTok-Now v2.1.0 is the culmination of a exhaustive codebase audit and refineme
 - 🪟 **Exact Work-Area Window Fit (1326 × 1032)**: Automatically measures DWM extended frame bounds and monitor work areas at runtime. The visible window aligns flush between your screen top and the Windows taskbar across all DPI scalings (100%, 125%, 150%) without overlapping borders.
 - 🌑 **Flash-Free Transitions**: Eradicated white and black screen flashes during launch and navigation by injecting the dark canvas at true document-start (MutationObserver) before the webview renders its first frame.
 - 🔒 **Comprehensive Security Auditing**: Scheme-whitelisted external URL opening (`http`, `https`, `mailto`), exact-domain matching for OAuth popups, zero diagnostic leakage in release binaries, strict Content Security Policy (CSP), and removal of unused dependencies.
+- ⌨️ **Native Text Controls & Passcode Dialog Support**: Form controls (`input`, `textarea`, `select`, `contenteditable`) strictly retain native text selection, drag-and-drop, and typing. Scoped captcha-slider styles and carousel gesture hooks to never interfere with text inputs, search boxes, or dialogs like TikTok's "Ready to close TikTok?" screen-time passcode box.
 - ✨ **UX Honesty Pass**: Verified asynchronous clipboard reporting for "URL copied", non-destructive tray restore (never overwrites custom window sizes), and complete cache clearing across Cache Storage, service workers, and local storage.
 
 ---
@@ -87,6 +88,7 @@ Both **v2.0.0** and **v2.1.0** represent stable, production-grade builds of TikT
 | **Release Diagnostics** | Stderr traces printed active URLs and titles | **Completely silenced in release** (`diag!` macro) | Absolute browsing privacy |
 | **Local Pages CSP** | `csp: null` | Strict CSP (`default-src 'self'`) + external scripts | Eliminates inline injection attack vectors |
 | **Web Cache Wipe** | Cleared `localStorage` & `sessionStorage` only | Purges **Cache Storage**, service workers, & storage | Genuine complete cache refresh |
+| **Passcode Dialogs & Inputs** | Captcha styles could lock inputs in "Ready to close" dialog | Form controls strictly retain native typing & selection; gestures scoped | Screen-time passcode and all dialog inputs accept typing flawlessly |
 | **Sound on Startup** | Unmuted at 50% with 60s grace period | **Preserved & hardened** | Flawless audio experience on launch |
 | **Photo Carousel Drag** | Swipe left/right; single-photo drag safe | **Preserved & hardened** | Native gesture feel for photo posts |
 | **Pause on Minimize** | Rust watchdog + Core Audio session mute | **Preserved & hardened** | 100% guaranteed silence in background |

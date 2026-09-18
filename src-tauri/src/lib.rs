@@ -815,6 +815,12 @@ const INIT_JS: &str = r##"
         // 0c. Captcha & Slider Dragging Fix: Prevents native WebView HTML5 dragstart from cancelling pointermove/mousemove
         document.addEventListener('dragstart', function(e) {
             if (e.target) {
+                // v2.1.0 round 6: text fields keep NATIVE drag behavior
+                // (dragging selected text out of an input is standard) —
+                // the captcha-family selectors below also match the
+                // screen-time dialog's container.
+                if (e.target.closest &&
+                    e.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
                 var tag = e.target.tagName ? e.target.tagName.toUpperCase() : '';
                 if (tag === 'IMG' || tag === 'SVG' || e.target.closest('[class*="captcha"]') || e.target.closest('[class*="sec-captcha"]') || e.target.closest('[class*="slider"]') || e.target.closest('[class*="verify"]') || e.target.closest('[class*="puzzle"]')) {
                     e.preventDefault();
@@ -825,7 +831,26 @@ const INIT_JS: &str = r##"
         var captchaCSS = document.createElement('style');
         captchaCSS.id = 'tiktok-now-captcha-fix';
         captchaCSS.textContent = `
-            [class*="captcha"], [class*="sec-captcha"], [class*="slider"], [class*="verify"], [class*="puzzle"] {
+            /* v2.1.0 round 6: NATIVE TEXT ENTRY RESTORATION. The captcha rules
+               below match broad substrings (verify, puzzle, ...) that also hit
+               NON-captcha surfaces — notably TikTok's screen-time passcode
+               dialog (its container class contains verify). user-select
+               INHERITS into the dialog's input, and Chromium/WebView2 inputs
+               with inherited user-select:none cannot reliably place the caret
+               or accept typed text. Form controls always get native
+               selection/typing behavior back. */
+            input, textarea, select,
+            [contenteditable=""], [contenteditable="true"] {
+                -webkit-user-select: text !important;
+                user-select: text !important;
+                touch-action: auto !important;
+                -webkit-user-drag: auto !important;
+            }
+            [class*="captcha"]:not(input):not(textarea):not(select),
+            [class*="sec-captcha"]:not(input):not(textarea):not(select),
+            [class*="slider"]:not(input):not(textarea):not(select),
+            [class*="verify"]:not(input):not(textarea):not(select),
+            [class*="puzzle"]:not(input):not(textarea):not(select) {
                 -webkit-user-drag: none !important;
                 user-select: none !important;
                 -webkit-user-select: none !important;
@@ -1077,6 +1102,12 @@ const INIT_JS: &str = r##"
             // v2.1.0: Messages page — chats can drag images/emoji grids; the
             // feed carousel logic must never claim those gestures.
             if (window.__tiktoknow_is_dm()) return;
+            // v2.1.0 round 6: never begin a carousel claim from a text-entry
+            // surface — a press inside an input (e.g. the screen-time
+            // passcode box rendered over a post) must never lead to the
+            // release-click suppression eating the input's own click/focus.
+            if (e.target && e.target.closest &&
+                e.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
             var ctx = findPhotoContext(e.target);
             if (!ctx) return;
             _carouselDrag = {

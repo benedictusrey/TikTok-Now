@@ -231,6 +231,7 @@ jobs:
             - 🪟 **Exact Work-Area Window Fit (1326 × 1032)**: Automatically derived from runtime DWM extended frame bounds and monitor work areas, flush with top of screen and taskbar across 100%, 125%, and 150% DPI scalings.
             - 🌑 **Flash-Free Transitions**: Dark canvas painted at true document-start (MutationObserver) before the first frame commit, eliminating white/black flashes on startup, tray feed switching, and login popups.
             - 🔒 **Comprehensive Security Auditing**: Scheme-whitelisted external URL opening (`http`, `https`, `mailto`), exact-domain matching for OAuth popups, zero diagnostic leakage in release builds (`diag!` macro), strict local CSP, and 6 dead dependencies removed.
+            - ⌨️ **Native Text Controls & Passcode Dialog Support**: Form controls (`input`, `textarea`, `select`, `contenteditable`) strictly retain native text selection, drag-and-drop, and typing. Scoped captcha-slider styles and carousel gesture hooks to never interfere with text inputs, search boxes, or dialogs like TikTok's "Ready to close TikTok?" screen-time passcode box.
             - ✨ **Honest UX Refinements**: Verified clipboard status for "URL copied", non-destructive tray restore, stateful tray labels, and complete cache purging across Cache Storage and service workers.
             - 🎯 **All Core Features Preserved**: Smart autoplay with sound at 50% on startup, photo carousel dragging, guaranteed pause-on-minimize with OS-level audio session mute, system tray integration, and picture-in-picture.
 

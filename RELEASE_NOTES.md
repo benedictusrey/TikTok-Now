@@ -45,6 +45,7 @@
 - **Dead surface removed** — 4 unused Tauri plugins, the SQLite/moka stack with its `db`/`state` modules, and the dead `check_auth` command (with its ACL grant) are gone; the remote capability is TikTok-only.
 
 ### ✨ UX honesty pass
+- **Screen-time passcode box is typeable again** — TikTok's "Ready to close TikTok?" dialog inherits `user-select: none` from the captcha-slider CSS (its container carries a `verify`-family class). Form controls (`input`, `textarea`, `select`, `contenteditable`) now strictly retain native text selection, drag, and typing; captcha styles are scoped away from form controls; and carousel release-click suppression never triggers on a text field.
 - **No fake confirmations** — "📋 URL copied" now means the clipboard actually received the URL.
 - **Restore keeps your window** — un-minimizing from the tray no longer resizes/re-centers it.
 - **Truthful tray menu** — Always-On-Top and Launch-on-Startup labels stay in sync and toast on change.

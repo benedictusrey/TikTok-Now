@@ -3,15 +3,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
-    // v2.1.0: the `Db` variant was removed together with the unused SQLite
-    // stack (rusqlite) — no command ever touched the database.
-
-    #[error("Tauri error: {0}")]
-    Tauri(#[from] tauri::Error),
-
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-
     #[error("{0}")]
     Custom(String),
 }

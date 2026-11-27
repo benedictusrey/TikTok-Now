@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v2.1.0)'
+        description: 'Release tag (e.g. v2.2.0)'
         required: true
-        default: 'v2.1.0'
+        default: 'v2.2.0'
 
 permissions:
   contents: write
@@ -224,16 +224,13 @@ jobs:
 
             ---
 
-            ### 🚀 Highlights in v2.1.0
+            ### 🚀 Highlights in v2.2.0
 
-            - ⚡ **Near-Instant Launch (350 ms)**: Splash redirect reduced from 2.2s to 350ms via `location.replace` (no splash bounce in back history) with proactive TLS/DNS pre-warming and offline auto-recovery.
-            - 💬 **First-Class Direct Messages**: Dedicated **💬 Direct Messages** tray menu navigation (`/messages`) with a DM-aware engine that guards keyboard inputs, disables synthetic clicks in chat, and skips auto-scroll.
-            - 🪟 **Exact Work-Area Window Fit (1326 × 1032)**: Automatically derived from runtime DWM extended frame bounds and monitor work areas, flush with top of screen and taskbar across 100%, 125%, and 150% DPI scalings.
-            - 🌑 **Flash-Free Transitions**: Dark canvas painted at true document-start (MutationObserver) before the first frame commit, eliminating white/black flashes on startup, tray feed switching, and login popups.
-            - 🔒 **Comprehensive Security Auditing**: Scheme-whitelisted external URL opening (`http`, `https`, `mailto`), exact-domain matching for OAuth popups, zero diagnostic leakage in release builds (`diag!` macro), strict local CSP, and 6 dead dependencies removed.
-            - ⌨️ **Native Text Controls & Passcode Dialog Support**: Form controls (`input`, `textarea`, `select`, `contenteditable`) strictly retain native text selection, drag-and-drop, and typing. Scoped captcha-slider styles and carousel gesture hooks to never interfere with text inputs, search boxes, or dialogs like TikTok's "Ready to close TikTok?" screen-time passcode box.
-            - ✨ **Honest UX Refinements**: Verified clipboard status for "URL copied", non-destructive tray restore, stateful tray labels, and complete cache purging across Cache Storage and service workers.
-            - 🎯 **All Core Features Preserved**: Smart autoplay with sound at 50% on startup, photo carousel dragging, guaranteed pause-on-minimize with OS-level audio session mute, system tray integration, and picture-in-picture.
+            - 🌐 **Issue #1 Fix (Windows HTTP 403)**: Removed stale hardcoded `Chrome/126.0.0.0` user-agent overrides, restored `wry` default WebView2 features (`msWebOOUI,msPdfOOUI,msSmartScreenProtection`) alongside occlusion/overlay/autoplay flags, and removed `no-referrer` from the splash screen.
+            - ⬇️ **Standalone Media Downloader (`downloader.html`)**: Stage-anchored top-right Download button (stays clear when Comments open and tracks scrolled For You videos with Comments open or closed) + tray entry supporting authentic original-resolution Videos (`H.264`/`HEVC`/`AAC`, with automatic `music.playUrl` audio muxing for video-only streams), Photo Carousels (`JPG`/`PNG`/`WebP`/`AVIF`/`HEIC`), Audio `.m4a`, Animated GIF export, and Full Post bundles via system `curl` + optional `ffmpeg` with strict TikTok-only cookie isolation.
+            - 🖱️ **Double-Click-to-Like Selection Fix**: Scoped `user-select: none` and `selectstart`/`dblclick` guards to player surfaces so double-clicking to like no longer highlights the whole viewport while comments, captions, inputs, and DMs keep native selection.
+            - 🔊 **Windows Volume Mixer Branding & Audio**: Sessions display `"TikTok-Now"` with the executable icon across active render endpoints (`EnumAudioEndpoints`), backed by a crash-safe `audio-muted.flag` recovery marker and foreground audio readiness.
+            - ⚡ **Cross-Platform Performance & Polish**: Added targeted `scrollFeedBy` scrolling, `prefers-reduced-motion` support, Windows WebView2 hide-sleep (`TrySuspend`/`Resume`), Linux WebKitGTK/Wayland runtime tuning, macOS Dock `Reopen` and `WKWebView` OAuth `window.opener` fixes, and universal work-area window clamping across all OSes.
 
             ---
 

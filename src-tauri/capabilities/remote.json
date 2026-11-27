@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.tauri.app/config/2/capability",
+  "identifier": "remote-tiktok-com",
+  "description": "Minimal native permissions granted to the tiktok.com page: media saving, default-browser hand-off, downloader launch, and scoped fallback probes.",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://tiktok.com/*",
+      "https://*.tiktok.com/*",
+      "https://www.tiktok.com/*"
+    ]
+  },
+  "local": false,
+  "permissions": [
+    "allow-open-external-url",
+    "allow-jump-to-external",
+    "allow-prepare-download-folder",
+    "allow-download-media",
+    "allow-save-media-bytes",
+    "allow-open-downloader-window",
+    "allow-submit-downloader-probe"
+  ]
+}

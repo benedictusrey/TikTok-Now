@@ -9,6 +9,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [2.2.0] — 2026-11-27
+
+> **v2.2.0** resolves the Windows TikTok access denial bug (Issue #1), introduces a built-in Media Downloader for videos, photo carousels, audio, GIFs, and full post bundles, fixes double-click selection and Windows Volume Mixer branding, and refines performance across Windows, macOS, and Linux.
+
+### 🐛 Bug Fixes
+- **Fixed Issue #1 ("Access to www.tiktok.com was denied" HTTP 403 on Windows)** — removed the stale hardcoded `Chrome/126.0.0.0` `.user_agent(...)` override from both main and popup `WebviewWindowBuilder`s, restored `wry` default WebView2 features (`msWebOOUI,msPdfOOUI,msSmartScreenProtection`) alongside `CalculateNativeWinOcclusion`, `--disable-direct-composition-video-overlays`, and `--autoplay-policy=no-user-gesture-required` in `DEFAULT_WEBVIEW_BROWSER_ARGS`, and removed `<meta name="referrer" content="no-referrer">` from `frontend/index.html`.
+- **Fixed double-click-to-like full-viewport blue selection overlay** — applied targeted `user-select: none` on video and player containers (`video`, `DivPlayerContainer`, `DivVideoWrapper`, `DivBasicPlayerWrapper`, `[data-e2e="feed-video"]`) while preserving `user-select: text` on inputs, comments, captions, and Direct Messages, reinforced by capture-phase `selectstart` prevention and `dblclick` selection range clearing.
+
+### ⬇️ Media Downloader
+- **Standalone Media Downloader (`downloader.html`) & stage-anchored Download button** — injected a top-right Download icon button anchored inside the active video/photo stage container (`.ttnow-media-host` / `.ttnow-download-btn`) with native top-right button collision shifting and `_carouselDrag` exemption so it stays clear when the Comments drawer opens and tracks scrolled For You videos with Comments open or closed (via fetch/XHR feed cache + stage DOM/React fiber resolution with orphan pruning). Added a **"⬇️ Media Downloader"** tray entry and moved `#tiktok-now-toast` to bottom-center.
+- **Authentic original-resolution downloads & exports** — inspects posts via HTTP cascade (`__UNIVERSAL_DATA_FOR_REHYDRATION__`, `SIGI_STATE`, `aweme_detail`, `/embed/v2/`, `oembed`, shortlink resolution) with live WebView probe fallback:
+  - **Videos**: parses DASH manifests, `bitrateInfo`, `downloadAddr`, and `playAddr`, strips MSE/DASH byte-range query parameters, ranks codecs (`H.264` > `HEVC` > `VP9` > `AV1`; `AAC` > `Opus`) highest resolution first, supports HLS `.m3u8` and CDN `fallback_urls`, automatically muxes `music.playUrl` audio for video-only streams, and stream-copies `H.264 + yuv420p + AAC + faststart` (or transcodes cleanly when `ffmpeg` is available).
+  - **Photo Carousels**: extracts slideshow images, sniffs `JPG`/`PNG`/`GIF`/`WebP`/`AVIF`/`HEIC` magic bytes, saves `JPG`/`PNG`/`GIF` verbatim, and normalizes `WebP`/`AVIF`/`HEIC` via optional `ffmpeg` only when needed.
+  - **Audio `.m4a` & Animated GIF**: extracts stereo `AAC 192k` `.m4a` (including slideshow background music) and exports `.gif` using a 256-color diff palette with Floyd-Steinberg dithering.
+  - **Full Post Bundles**: saves media, `caption.txt`, and `metadata.json` into `Downloads/TikTok-Now/<stem>/` concurrently with live `downloader-progress` updates.
+- **Strict TikTok-only cookie isolation & validation** — transfers via system `curl` (`System32\curl.exe` on Windows, `/usr/bin/curl` on Unix) passing headers through `--config -` stdin; cookies are never sent outside `tiktok.com` / `*.tiktok.com` (rejecting userinfo `@` bypasses). Validates MP4/image magic bytes, rejects HTML error responses, writes atomically, and sanitizes Windows reserved filenames.
+- **Scoped capability model** — split Tauri permissions across `capabilities/default.json` (local `main`), `capabilities/remote.json` (remote `main`), and `capabilities/downloader.json` (local `downloader`) covering 12 registered commands.
+
+### 🔊 Windows Volume Mixer & Audio
+- **Fixed Windows Volume Mixer branding & keepalive (`audio.rs`)** — replaced generic process branding with `"TikTok-Now"` display name, `"{exe},0"` icon path, and shared grouping GUID via `AudioSessionKeepAlive` across all active render endpoints (`EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE)` with hotplug refresh, `RPC_E_CHANGED_MODE`-safe COM, and clean handle release before `CoUninitialize`).
+- **Crash-safe mute recovery & foreground readiness** — added an `audio-muted.flag` persistence marker (`Mode::Hidden`, `Mode::Visible`, `Mode::Release` on tray Quit and `RunEvent::Exit`), wired `ensure_foreground_audio_ready()` and `__tiktoknowEnsureForegroundAudio()` on foreground focus transitions, and made `maybeStartupUnmute` non-fighting.
+
+### ⚡ Performance & Cross-Platform
+- **Scrolling, animations & DOM efficiency** — added targeted `window.scrollFeedBy` container scrolling, `prefers-reduced-motion` support for splash animations and feed scrolling, a 1,500 ms video mount visibility guard, adaptive idle polling (`1s`/`5s`/`15s`/`30s`), `captureFrame` CORS fallback, `TTNOWBG:r,g,b` native window background sync, and eliminated `document.body.innerText` layout reflows in `MutationObserver`.
+- **Linux WebKitGTK & Wayland runtime** — added `configure_linux_runtime_env()` (`GDK_BACKEND=x11` on Wayland+X11, targeted `WEBKIT_DISABLE_DMABUF_RENDERER=1` on WSLg/NVIDIA/no-DRI3/no-renderD via `x11-dl`, Skia CPU thread & GStreamer tuning), enabled `CacheModel::WebBrowser`, smooth scrolling, and `HardwareAccelerationPolicy::Always`, fixed Wayland `is_window_hidden_state`, skipped `set_position` on Wayland, and stripped heavy `blur`/`backdrop-filter` rules on WebKitGTK.
+- **macOS Dock reopen & OAuth popups** — handled `RunEvent::Reopen` when no visible windows exist and returned `NewWindowResponse::Allow` on non-Windows OAuth popups so `WKWebView` preserves `relatedView`/`window.opener`.
+- **Cross-OS work-area clamping & Windows WebView2 sleep** — clamped the `1326 × 1032` default frame to monitor work areas on all platforms (`geometry.rs`), added `webview_sleep.rs` (`TrySuspend`/`Resume` + low/normal memory target levels when hidden/restored), switched the watchdog to a condvar (`WATCHDOG_WAKE`) that exits cleanly when `main` closes, and moved `tauri/devtools` behind an optional Cargo feature.
+
+---
+
 ## [2.1.0] — 2026-09-18
 
 > **v2.1.0** is the audit release: a full pass over the v2.0.0 code — faster cold launch, removal of every dead dependency and code path, closure of real security/leakage findings, and a first-class, DM-safe **Messages** experience.

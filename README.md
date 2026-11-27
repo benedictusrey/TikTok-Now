@@ -12,12 +12,12 @@
 </p>
 
 <p align="center">
-  🎉 <strong>TikTok-Now v2.1.0 is now available</strong> 🎉<br>
-  <em>The Definitive Audit Release — Sub-second launch, hardened security, pixel-perfect geometry, and native Direct Messages.</em>
+  🎉 <strong>TikTok-Now v2.2.0 is now available</strong> 🎉<br>
+  <em>Windows 403 Fix, Built-In Media Downloader, Volume Mixer Branding, and Cross-Platform Polish.</em>
 </p>
 
 <p align="center">
-  <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/version-2.1.0-213547?style=flat-square" alt="Version 2.1.0"></a>
+  <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/version-2.2.0-213547?style=flat-square" alt="Version 2.2.0"></a>
   <a href="https://github.com/benedictusrey/TikTok-Now/releases/latest"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-168B72?style=flat-square" alt="Platform"></a>
   <a href="https://tauri.app/"><img src="https://img.shields.io/badge/built%20with-Tauri%20v2-24A6D8?style=flat-square" alt="Built with Tauri v2"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/built%20with-Rust-B7410E?style=flat-square" alt="Built with Rust"></a>
@@ -41,8 +41,8 @@ Engineered from the ground up using **Tauri v2 + Rust**, TikTok-Now compiles to 
 
 ## 🧭 Table of Contents
 
-- [✨ What's New in v2.1.0](#-whats-new-in-v210)
-- [⚖️ Version Comparison: v2.0.0 vs v2.1.0](#️-version-comparison-v200-vs-v210)
+- [✨ What's New in v2.2.0](#-whats-new-in-v220)
+- [⚖️ Version Comparison: v2.1.0 vs v2.2.0](#️-version-comparison-v210-vs-v220)
 - [🌟 Features & Capabilities](#-features--capabilities)
 - [🖥️ System Tray Integration](#️-system-tray-integration)
 - [⚡ Architecture & Efficiency](#-architecture--efficiency)
@@ -55,43 +55,30 @@ Engineered from the ground up using **Tauri v2 + Rust**, TikTok-Now compiles to 
 
 ---
 
-## ✨ What's New in v2.1.0
+## ✨ What's New in v2.2.0
 
-TikTok-Now v2.1.0 is the culmination of a exhaustive codebase audit and refinement cycle:
+TikTok-Now v2.2.0 fixes the Windows 403 block (Issue #1), ships a built-in Media Downloader, resolves double-click selection and Windows Volume Mixer branding issues, and optimizes behavior across Windows, macOS, and Linux:
 
-- 🚀 **Near-Instant Launch (350 ms)**: Cold start splash redirect reduced from 2.2 seconds to 350 ms. Uses `location.replace` so browser history never strands you on a blank splash loop, with proactive `preconnect` and `dns-prefetch` warming TLS and DNS handshakes to TikTok servers during animation.
-- 💬 **First-Class Direct Messages**: Added **💬 Direct Messages** tray navigation. The desktop engine is fully DM-aware: synthetic media clicks are bypassed inside chat, auto-scroll is safely locked out with a friendly notification, gestures never claim chat text, and keyboard shortcuts respect modifier keys (`Ctrl`, `Meta`, `Alt`) and all text fields (`INPUT`, `TEXTAREA`, `SELECT`, and `contenteditable`).
-- 🪟 **Exact Work-Area Window Fit (1326 × 1032)**: Automatically measures DWM extended frame bounds and monitor work areas at runtime. The visible window aligns flush between your screen top and the Windows taskbar across all DPI scalings (100%, 125%, 150%) without overlapping borders.
-- 🌑 **Flash-Free Transitions**: Eradicated white and black screen flashes during launch and navigation by injecting the dark canvas at true document-start (MutationObserver) before the webview renders its first frame.
-- 🔒 **Comprehensive Security Auditing**: Scheme-whitelisted external URL opening (`http`, `https`, `mailto`), exact-domain matching for OAuth popups, zero diagnostic leakage in release binaries, strict Content Security Policy (CSP), and removal of unused dependencies.
-- ⌨️ **Native Text Controls & Passcode Dialog Support**: Form controls (`input`, `textarea`, `select`, `contenteditable`) strictly retain native text selection, drag-and-drop, and typing. Scoped captcha-slider styles and carousel gesture hooks to never interfere with text inputs, search boxes, or dialogs like TikTok's "Ready to close TikTok?" screen-time passcode box.
-- ✨ **UX Honesty Pass**: Verified asynchronous clipboard reporting for "URL copied", non-destructive tray restore (never overwrites custom window sizes), and complete cache clearing across Cache Storage, service workers, and local storage.
+- 🌐 **Issue #1 Fix — Windows HTTP 403 Resolved**: Removed the stale hardcoded `Chrome/126.0.0.0` user-agent override from main and popup webviews, restored `wry` default WebView2 features (`msWebOOUI,msPdfOOUI,msSmartScreenProtection`) alongside occlusion/overlay/autoplay flags, and removed `<meta name="referrer" content="no-referrer">` from the splash screen (`frontend/index.html`).
+- ⬇️ **Built-In Media Downloader (`downloader.html`)**: Added a stage-anchored top-right Download icon button inside the active video/photo stage (shifts around native controls, stays clear when the Comments drawer opens, and tracks scrolled For You videos with Comments open or closed) plus a **"⬇️ Media Downloader"** tray item. Supports authentic original-resolution **Videos** (`H.264`/`HEVC`/`AAC`, DASH/MP4/HLS `.m3u8`, with automatic `music.playUrl` audio muxing for video-only streams), **Photo Carousels** (`JPG`/`PNG`/`WebP`/`AVIF`/`HEIC`), **Audio `.m4a`**, **Animated GIF** export, and **Full Post Bundles** (`caption.txt`, `metadata.json`, and media) via system `curl` and optional `ffmpeg` with strict TikTok-only cookie isolation.
+- 🖱️ **Double-Click-to-Like Selection Fix**: Eliminated the full-viewport blue selection highlight on double-click by scoping `user-select: none` and capture-phase `selectstart`/`dblclick` guards to video/player surfaces while keeping native text selection in inputs, comments, captions, and Direct Messages.
+- 🔊 **Windows Volume Mixer Branding & Foreground Audio**: Sessions now display `"TikTok-Now"` with the executable's icon and a shared grouping GUID across active render endpoints (`EnumAudioEndpoints`), paired with an `audio-muted.flag` crash-safe mute marker and foreground audio readiness checks.
+- ⚡ **Cross-Platform Runtime & UI Optimizations**: Added targeted `scrollFeedBy` container scrolling, `prefers-reduced-motion` support, Windows WebView2 hide-sleep (`TrySuspend`/`Resume` + memory target levels), Linux WebKitGTK/Wayland runtime auto-configuration and blur stripping, macOS Dock `Reopen` and `WKWebView` OAuth `window.opener` support, and universal work-area window clamping (`1326 × 1032`) across all OSes.
 
 ---
 
-## ⚖️ Version Comparison: v2.0.0 vs v2.1.0
+## ⚖️ Version Comparison: v2.1.0 vs v2.2.0
 
-Both **v2.0.0** and **v2.1.0** represent stable, production-grade builds of TikTok-Now. Here is a granular breakdown of how v2.1.0 enhances the solid v2.0.0 foundation:
-
-| Feature / Behavior | v2.0.0 Milestone | v2.1.0 Audit Release | Benefit |
+| Feature / Behavior | v2.1.0 Audit Release | v2.2.0 | Benefit |
 |---|---|---|---|
-| **Splash Screen Delay** | 2,200 ms fixed timeout | **350 ms** fast-path | Launch is nearly instantaneous |
-| **History Navigation** | `location.href` (splash retained in back history) | `location.replace` (splash dropped from stack) | Clicking Back never gets trapped in splash |
-| **Network Handshake** | Plain redirect on timer | `preconnect` + `dns-prefetch` prewarming | Socket & TLS ready before redirect |
-| **Offline Handling** | Required manual retry button | Auto-redirects on `online` event + instant retry | Recovers the second connectivity returns |
-| **Direct Messages (DMs)** | Unaware; shortcuts & clicks could interfere with chat | **Dedicated DM-aware engine** + tray shortcut | Type messages safely without triggering video actions |
-| **Keyboard Input Safety** | Basic event listener | Persistent typing guard + modifier key bypass | Normal typing in composer, inputs, and textareas |
-| **Window Dimensions** | Fixed 1250 × 900 (outer rect centered) | **1326 × 1032** visible frame (runtime measured) | Perfect fit between screen top & taskbar |
-| **Tray Restore Behavior** | Re-centered & forced window back to 1250 × 900 | Unminimizes & focuses without altering size | Respects your custom window sizing |
-| **External URL Handler** | Passed raw strings to shell handler | Strict scheme allowlist (`http`, `https`, `mailto`) | Mitigates arbitrary scheme execution risks |
-| **OAuth Popup Filter** | Substring search (`live`, `auth`, etc.) | Exact domain & official subdomains only | Eliminates false popup intercepts |
-| **Release Diagnostics** | Stderr traces printed active URLs and titles | **Completely silenced in release** (`diag!` macro) | Absolute browsing privacy |
-| **Local Pages CSP** | `csp: null` | Strict CSP (`default-src 'self'`) + external scripts | Eliminates inline injection attack vectors |
-| **Web Cache Wipe** | Cleared `localStorage` & `sessionStorage` only | Purges **Cache Storage**, service workers, & storage | Genuine complete cache refresh |
-| **Passcode Dialogs & Inputs** | Captcha styles could lock inputs in "Ready to close" dialog | Form controls strictly retain native typing & selection; gestures scoped | Screen-time passcode and all dialog inputs accept typing flawlessly |
-| **Sound on Startup** | Unmuted at 50% with 60s grace period | **Preserved & hardened** | Flawless audio experience on launch |
-| **Photo Carousel Drag** | Swipe left/right; single-photo drag safe | **Preserved & hardened** | Native gesture feel for photo posts |
-| **Pause on Minimize** | Rust watchdog + Core Audio session mute | **Preserved & hardened** | 100% guaranteed silence in background |
+| **Windows WebView2 Identity** | Hardcoded `Chrome/126.0.0.0` UA + `no-referrer` splash | **Native WebView2 defaults** + referrer preserved | Fixes Issue #1 (`Access to www.tiktok.com was denied` 403) |
+| **Media Downloading** | Screenshot frame capture only | **Standalone Media Downloader** + stage-anchored button | Original-resolution Videos (with `music.playUrl` audio muxing for video-only streams), Carousels, `.m4a` Audio, `.gif`, Full Bundles |
+| **Downloader Auth & Isolation** | N/A | System `curl` (`--config -`) + `tiktok.com` host guard | Cookies never leak to third-party or CDN hosts |
+| **Double-Click to Like** | Could trigger full-viewport blue selection overlay | **Scoped player `user-select: none`** + `selectstart`/`dblclick` guard | Clean double-click likes while comments/DMs remain selectable |
+| **Windows Volume Mixer** | Unbranded WebView2 audio session | **`"TikTok-Now"` + exe icon** + active endpoint keepalive | Identifiable Volume Mixer entry + crash-safe mute recovery |
+| **Background Resource Use** | Page pause + audio mute | **WebView2 `TrySuspend`/low-memory sleep** (Windows) + condvar watchdog | Lower idle CPU/RAM while hidden in the tray |
+| **Window Clamping** | Runtime work-area fit primarily on Windows | **Work-area clamped across Windows, macOS, and Linux** | Fits cleanly on any screen size or OS |
+| **Linux & macOS Polish** | Basic WebKit/Tauri defaults | **WebKitGTK/Wayland env + `CacheModel` + macOS `Reopen`/OAuth** | Smoother Linux playback & reliable macOS Dock/login popups |
 
 ---
 
@@ -123,7 +110,7 @@ The system tray icon keeps TikTok-Now quiet, fast, and accessible at any second 
 - **Instant Feed Jump**: Navigate directly to **🔥 For You**, **👥 Following**, **🤝 Friends**, **🔍 Explore**, **🔴 Live**, **💬 Direct Messages**, or **➕ Upload**.
 - **Playback Control**: Play/Pause, Next/Previous Video, Seek ±5s, Toggle Mute, and Volume adjustments.
 - **Convenience Toggles**: Toggle **Always-on-Top** pinning, **Auto-Scroll** mode, or **Launch on Startup**.
-- **Desktop Actions**: Take a video screenshot (**Capture Video Frame**), copy the current URL (**Copy Video Link**), or perform a complete wipe (**Clear Web Cache**).
+- **Desktop Actions**: Open the **⬇️ Media Downloader**, take a video screenshot (**Capture Video Frame**), copy the current URL (**Copy Video Link**), or perform a complete wipe (**Clear Web Cache**).
 
 ---
 
@@ -137,13 +124,14 @@ Traditional desktop wrappers package entire Chromium engines through Electron, e
 │  ┌──────────────────────────────────────────────────┐  │
 │  │     Injected Ergonomics Engine (Vanilla JS)      │  │
 │  │  • 350ms Splash preconnect • DM-aware typing     │  │
-│  │  • Photo carousel gestures • Pause hooks         │  │
+│  │  • Stage Download button   • Carousel gestures   │  │
 │  └────────────────────────┬─────────────────────────┘  │
-│                           │ IPC (jump_to_external)      │
+│                           │ Scoped Tauri IPC            │
 │  ┌────────────────────────▼─────────────────────────┐  │
 │  │          Tauri v2 + Rust Core Backend            │  │
-│  │  • Exact work-area geometry engine (1326 × 1032) │  │
-│  │  • Windows Core Audio process-tree watchdog      │  │
+│  │  • Work-area geometry & WebView2 hide-sleep      │  │
+│  │  • Windows Core Audio branding + endpoint watch  │  │
+│  │  • Media Downloader (system curl + opt. ffmpeg)  │  │
 │  │  • Stateful System Tray controller               │  │
 │  └──────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────┘
@@ -165,8 +153,8 @@ TikTok-Now is designed with privacy and data protection at its core:
    - **Windows**: `%LOCALAPPDATA%\com.tiktoknow.desktop\EBWebView`
    - **macOS**: `~/Library/Application Support/com.tiktoknow.desktop`
    - **Linux**: `~/.config/com.tiktoknow.desktop`
-4. **Strict Local CSP**: Local splash pages operate under a strict Content Security Policy (`default-src 'self'`), forbidding unauthorized external script execution.
-5. **Scheme Validation**: Inbound URL opening requests are strictly validated for `http://`, `https://`, and `mailto:` protocols.
+4. **Scoped Capabilities & Isolated Downloader Profile**: Tauri capabilities are split per window (`default`, `remote`, `downloader`) so remote TikTok pages cannot access downloader internals, and the downloader runs in an isolated WebView profile.
+5. **Scheme Validation & Cookie Isolation**: Inbound URL opening requests are strictly validated for `http://`, `https://`, and `mailto:` protocols, and Media Downloader `curl` requests send TikTok cookies only to `tiktok.com` / `*.tiktok.com` hosts.
 
 ---
 
@@ -176,23 +164,23 @@ Pre-compiled, ready-to-run release binaries are available on [GitHub Releases](h
 
 | Operating System | Distribution File | Architecture | Description |
 |---|---|---|---|
-| 🪟 **Windows** | `TikTok-Now_v2.1.0_windows-x86_64.exe` | x86_64 (64-bit) | Portable single executable. No installer required. |
-| 🍎 **macOS** | `TikTok-Now_v2.1.0_macos-universal` | Universal (Apple Silicon + Intel) | Dual-slice universal binary for M1/M2/M3/M4 & Intel Macs. |
-| 🐧 **Linux** | `TikTok-Now_v2.1.0_linux-x86_64` | x86_64 | Standalone binary targeting GTK3 & WebKit2GTK 4.1. |
+| 🪟 **Windows** | `TikTok-Now_v2.2.0_windows-x86_64.exe` | x86_64 (64-bit) | Portable single executable. No installer required. |
+| 🍎 **macOS** | `TikTok-Now_v2.2.0_macos-universal` | Universal (Apple Silicon + Intel) | Dual-slice universal binary for M1/M2/M3/M4 & Intel Macs. |
+| 🐧 **Linux** | `TikTok-Now_v2.2.0_linux-x86_64` | x86_64 | Standalone binary targeting GTK3 & WebKit2GTK 4.1. |
 
 ### How to Run
 
-- **Windows**: Download `TikTok-Now_v2.1.0_windows-x86_64.exe` and double-click to launch.
+- **Windows**: Download `TikTok-Now_v2.2.0_windows-x86_64.exe` and double-click to launch.
 - **macOS**:
   ```bash
-  chmod +x TikTok-Now_v2.1.0_macos-universal
-  ./TikTok-Now_v2.1.0_macos-universal
+  chmod +x TikTok-Now_v2.2.0_macos-universal
+  ./TikTok-Now_v2.2.0_macos-universal
   ```
   *(Note: If prompted by Gatekeeper, right-click and choose "Open" or approve in System Settings › Privacy & Security).*
 - **Linux**:
   ```bash
-  chmod +x TikTok-Now_v2.1.0_linux-x86_64
-  ./TikTok-Now_v2.1.0_linux-x86_64
+  chmod +x TikTok-Now_v2.2.0_linux-x86_64
+  ./TikTok-Now_v2.2.0_linux-x86_64
   ```
 
 ---
@@ -213,7 +201,7 @@ Pre-compiled, ready-to-run release binaries are available on [GitHub Releases](h
 
 ## 📚 Documentation Index
 
-- 📋 [Release Notes](RELEASE_NOTES.md) — Exhaustive v2.1.0 release details and cryptographic verification.
+- 📋 [Release Notes](RELEASE_NOTES.md) — Exhaustive v2.2.0 release details and cryptographic verification.
 - 📜 [Changelog](CHANGELOG.md) — Chronological history across all releases.
 - 🤝 [Contributing Guide](CONTRIBUTING.md) — Local setup, code standards, and PR guidelines.
 - 🛡️ [Security Policy](SECURITY.md) — Vulnerability reporting and isolation guarantees.

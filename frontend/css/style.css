@@ -181,9 +181,28 @@ html, body {
   opacity: 0.9;
 }
 
+.btn-retry:focus-visible {
+  outline: 2px solid var(--cyan-neon);
+  outline-offset: 2px;
+}
+
 .footer-credit {
   position: absolute;
   bottom: 24px;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-icon,
+  .glow-ring,
+  .equalizer .bar,
+  .spinner {
+    animation: none;
+  }
+
+  .tagline,
+  .btn-retry {
+    transition: none;
+  }
 }

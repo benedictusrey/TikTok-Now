@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TikTok-Now Downloader for saving TikTok videos, photo carousels, GIFs, audio tracks, and captions.">
+  <title>TikTok-Now Downloader</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0e15;
+      --surface: #12141e;
+      --surface-elevated: #171a26;
+      --well: #1d2130;
+      --well-hover: #262b3e;
+      --media-bg: #08090f;
+      --border: #2a2f42;
+      --border-strong: #3d445e;
+      --ink: #f4f5f8;
+      --muted: #9ea6bd;
+      --dim: #7f87a0;
+      --accent: #00d4e0;
+      --accent-hover: #00b8c4;
+      --accent-ink: #071014;
+      --focus: #00f2fe;
+      --selection-bg: rgba(0, 242, 254, 0.24);
+      --badge-bg: rgba(13, 14, 21, 0.92);
+      --loading-border: rgba(0, 242, 254, 0.45);
+      --loading-bg: #101622;
+      --ok: #34d399;
+      --warn: #fbbf24;
+      --err: #f87171;
+      --scroll-thumb: rgba(244, 245, 248, 0.22);
+      --font-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-pill: 9999px;
+      --ease: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    *::selection {
+      background: var(--selection-bg);
+      color: var(--ink);
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: clip;
+      background: var(--bg);
+      color: var(--ink);
+      caret-color: var(--focus);
+      font: 13px/1.5 var(--font-sans);
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) transparent;
+    }
+
+    body {
+      overflow-y: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--scroll-thumb);
+      border-radius: var(--radius-pill);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(244, 245, 248, 0.36);
+    }
+
+    .workbench-app {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-5);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--well);
+      border: 1px solid var(--border-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--focus);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.2;
+      color: var(--ink);
+    }
+
+    .subtitle {
+      margin: var(--space-1) 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-shrink: 0;
+    }
+
+    .engine-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .engine-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--dim);
+      flex-shrink: 0;
+    }
+
+    .engine-status[data-ready="ffmpeg"] {
+      color: var(--ok);
+      border-color: var(--border-strong);
+    }
+
+    .engine-status[data-ready="ffmpeg"]::before {
+      background: var(--ok);
+    }
+
+    .engine-status[data-ready="progressive"]::before {
+      background: var(--warn);
+    }
+
+    .url-strip {
+      padding: var(--space-3) var(--space-5);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-elevated);
+      color: var(--ink);
+      flex-shrink: 0;
+    }
+
+    .label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin: 0 0 var(--space-2);
+    }
+
+    .label-row label.field-label {
+      margin-bottom: 0;
+    }
+
+    .field-hint {
+      font-size: 12px;
+      color: var(--dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .input-wrap,
+    .select-wrap {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap input[type="text"] {
+      padding-right: 36px;
+    }
+
+    .select-wrap select {
+      padding-right: 32px;
+    }
+
+    .select-chevron {
+      position: absolute;
+      right: 12px;
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .clear-input-btn {
+      position: absolute;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .clear-input-btn:hover:not(:disabled) {
+      background: var(--well-hover);
+      color: var(--ink);
+    }
+
+    .clear-input-btn[hidden] {
+      display: none;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--well);
+      color: var(--ink);
+      padding: var(--space-2) var(--space-3);
+      font: inherit;
+      transition: border-color 120ms var(--ease), background-color 120ms var(--ease);
+    }
+
+    input[type="text"],
+    select {
+      height: 36px;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: var(--dim);
+    }
+
+    input[type="text"]:hover:not(:disabled),
+    select:hover:not(:disabled),
+    textarea:hover:not(:disabled) {
+      border-color: var(--muted);
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--well);
+      color: var(--ink);
+    }
+
+    select:disabled,
+    input:disabled,
+    textarea:disabled {
+      cursor: not-allowed;
+      opacity: 0.54;
+    }
+
+    input[type="text"]:focus-visible,
+    input[type="range"]:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    textarea {
+      flex: 1 1 0;
+      min-height: 110px;
+      height: 100%;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.55;
+    }
+
+    button {
+      height: 36px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--well);
+      color: var(--ink);
+      font: 500 12.5px/1 var(--font-sans);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background-color 120ms var(--ease), border-color 120ms var(--ease), transform 80ms var(--ease);
+    }
+
+    button svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    button:hover:not(:disabled) {
+      background: var(--well-hover);
+      border-color: var(--muted);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      opacity: 0.44;
+      cursor: not-allowed;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button.compact-btn {
+      height: 32px;
+      padding: 0 var(--space-3);
+      font-size: 12px;
+    }
+
+    .workbench-body {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-3) var(--space-5);
+      gap: var(--space-3);
+    }
+
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .meta-cells {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-1) var(--space-2);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .split-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+      gap: var(--space-4);
+      align-items: stretch;
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .media-col {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .caption-col {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .preview-box {
+      position: relative;
+      flex: 1 1 220px;
+      min-height: 184px;
+      max-height: 300px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--media-bg);
+      color: var(--muted);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-box[data-state="loading"] {
+      border-color: var(--loading-border);
+      background: var(--loading-bg);
+    }
+
+    .preview-box[data-state="loading"] .preview-empty {
+      animation: preview-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes preview-pulse {
+      0%, 100% { opacity: 0.55; }
+      50% { opacity: 1; }
+    }
+
+    .preview-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: var(--space-6) var(--space-4);
+      gap: var(--space-2);
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 24ch;
+    }
+
+    .preview-empty[hidden] {
+      display: none;
+    }
+
+    .preview-empty svg {
+      width: 26px;
+      height: 26px;
+      color: var(--dim);
+    }
+
+    #preview-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: var(--media-bg);
+      transform-origin: center center;
+      transition: transform 100ms var(--ease);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .preview-box.is-zoomable {
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .preview-box.is-panning {
+      cursor: grabbing;
+    }
+
+    .preview-box.is-panning #preview-thumb {
+      transition: none;
+    }
+
+    .preview-zoom-bar {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-2);
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-strong);
+      background: var(--badge-bg);
+      color: var(--ink);
+    }
+
+    .preview-zoom-bar[hidden] {
+      display: none;
+    }
+
+    .preview-zoom-bar .preview-zoom-btn {
+      height: 24px;
+      min-width: 24px;
+      padding: 0 var(--space-2);
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+    }
+
+    .preview-zoom-slider {
+      width: 84px;
+      accent-color: var(--focus);
+      cursor: pointer;
+    }
+
+    .preview-zoom-label {
+      min-width: 36px;
+      text-align: right;
+      font-size: 11px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
+    .preview-tag {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      padding: var(--space-1) var(--space-2);
+      border-radius: 6px;
+      background: var(--badge-bg);
+      border: 1px solid var(--border-strong);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+    }
+
+    .preview-tag[hidden] {
+      display: none;
+    }
+
+    .slide-picker-row {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+    }
+
+    .slide-step-btn {
+      width: 36px;
+      padding: 0;
+    }
+
+    .slide-strip {
+      display: flex;
+      justify-content: safe center;
+      gap: var(--space-2);
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: var(--space-1) 0;
+      max-width: 100%;
+    }
+
+    .slide-strip[hidden] {
+      display: none;
+    }
+
+    .slide-strip__btn {
+      position: relative;
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
+      padding: 0;
+      border-radius: 7px;
+      overflow: hidden;
+      background: var(--media-bg);
+      border: 1px solid var(--border-strong);
+    }
+
+    .slide-strip__btn[aria-pressed="true"] {
+      border-color: var(--focus);
+      box-shadow: 0 0 0 1px var(--focus);
+    }
+
+    .slide-strip__thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .slide-strip__num {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      padding: 0 var(--space-1);
+      border-radius: 4px;
+      background: var(--badge-bg);
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+    }
+
+    .slide-strip__video {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background: var(--badge-bg);
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .spec-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      padding: var(--space-3);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .spec-line {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .spec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+    }
+
+    .spec-copy-btn {
+      height: 24px;
+      padding: 0 var(--space-2);
+      font-size: 12px;
+      border-radius: 5px;
+      color: var(--muted);
+      border-color: var(--border);
+    }
+
+    .spec-value {
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .caption-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .caption-title-group {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+    }
+
+    .caption-title-group label.field-label {
+      margin: 0;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-2);
+      padding-top: var(--space-1);
+    }
+
+    .actions-grid button {
+      width: 100%;
+      min-width: 0;
+      height: 36px;
+      padding: 0 var(--space-3);
+      font-size: 12.5px;
+    }
+
+    .actions-grid button[hidden] {
+      display: none;
+    }
+
+    #download-selected-btn {
+      grid-column: 1 / -1;
+    }
+
+    .actions-grid[data-image-only="1"] #download-bundle-btn {
+      grid-column: 1 / -1;
+    }
+
+    .actions-note {
+      margin: 0;
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.45;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .progress-track[hidden] {
+      display: none;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--focus);
+      transition: width 160ms var(--ease);
+    }
+
+    .status-footer {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-5);
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+    }
+
+    .status-footer[data-busy="1"]::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--focus);
+      animation: status-bar-pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes status-bar-pulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 1; }
+    }
+
+    .status-box {
+      flex: 1 1 auto;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .status-box[data-tone="ok"] { color: var(--ok); }
+    .status-box[data-tone="warn"] { color: var(--warn); }
+    .status-box[data-tone="err"] { color: var(--err); }
+
+    .status-open-btn[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 720px), (max-height: 620px) {
+      body {
+        height: auto;
+        overflow-y: auto;
+      }
+
+      .workbench-app {
+        height: auto;
+        min-height: 100dvh;
+      }
+
+      .workbench-body,
+      .split-grid,
+      .caption-col,
+      .media-col {
+        flex: 0 0 auto;
+        overflow: visible;
+      }
+
+      .preview-box {
+        flex: 0 0 auto;
+        height: 224px;
+      }
+
+      textarea {
+        flex: 0 0 auto;
+        min-height: 160px;
+        height: 200px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .split-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .row {
+        flex-wrap: wrap;
+      }
+
+      .url-strip .input-wrap {
+        min-width: min(260px, 100%);
+      }
+
+      .topbar,
+      .url-strip,
+      .workbench-body,
+      .status-footer {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+      }
+    }
+
+    @media (max-width: 660px) {
+      .topbar {
+        flex-wrap: wrap;
+      }
+
+      .topbar-right {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .actions-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .preview-box[data-state="loading"] .preview-empty,
+      .status-footer[data-busy="1"]::before {
+        animation: none;
+      }
+
+      button,
+      input,
+      select,
+      textarea,
+      #preview-thumb,
+      .progress-fill {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="workbench-app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"/>
+            <path d="m7 10 5 5 5-5"/>
+            <path d="M5 20h14"/>
+          </svg>
+        </span>
+        <div>
+          <h1 class="brand-title">TikTok-Now Downloader</h1>
+          <p class="subtitle">Save TikTok videos, photo carousels, GIFs, audio, and captions</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="engine-status" id="engine-badge" data-ready="idle" title="FFmpeg audio extraction and GIF conversion status">MP4 Direct</span>
+        <button type="button" id="open-folder-btn" title="Open Downloads/TikTok-Now folder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+          </svg>
+          Open Downloads
+        </button>
+      </div>
+    </header>
+
+    <section class="url-strip" aria-label="Link input">
+      <div class="label-row">
+        <label class="field-label" for="url-input">TikTok Post URL or Video ID</label>
+        <span class="field-hint" id="url-hint">Auto-inspects on open or paste (Ctrl+L)</span>
+      </div>
+      <div class="row">
+        <div class="input-wrap">
+          <input type="text" id="url-input" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="off" spellcheck="false">
+          <button type="button" id="clear-url-btn" class="clear-input-btn" aria-label="Clear link" title="Clear link" hidden>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <button type="button" id="paste-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="8" height="4" x="8" y="2" rx="1"/>
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          </svg>
+          Paste
+        </button>
+        <button type="button" id="inspect-btn" class="primary">Inspect Link</button>
+      </div>
+    </section>
+
+    <section class="workbench-body" id="post-section" aria-label="Formats and post caption">
+      <div class="meta-bar">
+        <div class="meta-cells" id="post-summary">
+          <span>Waiting for a link. Open Downloader from the feed or paste a TikTok post URL.</span>
+        </div>
+        <span id="destination-note">Saves to Downloads/TikTok-Now</span>
+      </div>
+
+      <div class="split-grid">
+        <div class="media-col">
+          <div class="preview-box" id="preview-box" data-state="idle">
+            <div class="preview-empty" id="preview-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect width="18" height="14" x="3" y="5" rx="2"/>
+                <path d="m10 9 5 3-5 3z"/>
+              </svg>
+              <span id="preview-empty-text">Preview loads automatically on inspection</span>
+            </div>
+            <span class="preview-tag" id="preview-tag" hidden>MP4</span>
+            <div class="preview-zoom-bar" id="preview-zoom-bar" role="group" aria-label="Preview zoom" hidden>
+              <button type="button" class="preview-zoom-btn" id="preview-zoom-out-btn" aria-label="Zoom out preview" title="Zoom out (-)">-</button>
+              <input type="range" class="preview-zoom-slider" id="preview-zoom-slider" min="100" max="400" step="5" value="100" aria-label="Image zoom level">
+              <span class="preview-zoom-label" id="preview-zoom-label">100%</span>
+              <button type="button" class="preview-zoom-btn" id="preview-zoom-in-btn" aria-label="Zoom in preview" title="Zoom in (+)">+</button>
+              <button type="button" class="preview-zoom-btn" id="preview-zoom-reset-btn" aria-label="Reset zoom to fit" title="Reset zoom (0 or F)">Fit</button>
+            </div>
+          </div>
+
+          <div class="slide-strip" id="slide-strip" role="group" aria-label="Carousel media items" hidden></div>
+
+          <div>
+            <label class="field-label" for="slide-select">Media Item</label>
+            <div class="slide-picker-row">
+              <button type="button" id="prev-slide-btn" class="slide-step-btn" aria-label="Previous item" title="Previous item" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6"/>
+                </svg>
+              </button>
+              <div class="select-wrap">
+                <select id="slide-select" disabled></select>
+                <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </div>
+              <button type="button" id="next-slide-btn" class="slide-step-btn" aria-label="Next item" title="Next item" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="field-label" for="format-select">Quality and Format</label>
+            <div class="select-wrap">
+              <select id="format-select" disabled></select>
+              <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="spec-box" aria-label="Output specification">
+            <div class="spec-line">
+              <div class="spec-head">
+                <span>Output file name</span>
+                <button type="button" id="copy-stem-btn" class="spec-copy-btn" disabled>Copy</button>
+              </div>
+              <span class="spec-value" id="output-name-preview">username-YYYYMMDD-videoId.mp4</span>
+            </div>
+            <div class="spec-line">
+              <span>Selected stream</span>
+              <span class="spec-value" id="audio-spec-preview">Original resolution</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="caption-col">
+          <div class="caption-header">
+            <div class="caption-title-group">
+              <label class="field-label" for="caption-input">Post Caption (.txt)</label>
+              <span class="field-hint" id="caption-count">0 chars</span>
+            </div>
+            <div class="row">
+              <button type="button" id="copy-caption-btn" class="compact-btn" disabled>Copy Text</button>
+              <button type="button" id="save-caption-btn" class="compact-btn" title="Save caption (.txt) to Downloads/TikTok-Now" disabled>Save (.txt)</button>
+            </div>
+          </div>
+
+          <textarea id="caption-input" placeholder="Inspected post caption appears here. You can edit it before saving."></textarea>
+
+          <div class="actions-grid">
+            <button type="button" id="download-selected-btn" class="primary" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>
+              </svg>
+              <span id="download-selected-label">Download Video (.mp4)</span>
+            </button>
+            <button type="button" id="download-audio-btn" title="Extract 192 kbps stereo AAC (.m4a)" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
+              </svg>
+              Audio Only (.m4a)
+            </button>
+            <button type="button" id="download-bundle-btn" title="Save all items, caption.txt, and metadata.json into one folder" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                <path d="m3.3 7 8.7 5 8.7-5"/>
+                <path d="M12 22V12"/>
+              </svg>
+              <span id="download-bundle-label">Save Full Post</span>
+            </button>
+          </div>
+          <p class="actions-note" id="actions-note">Save Full Post exports all post media alongside caption.txt and metadata.json into one folder.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="status-footer" id="status-footer" data-busy="0">
+      <div class="progress-track" id="progress-track" hidden aria-hidden="true">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="status-row">
+        <div class="status-box" id="status-box" role="status" aria-live="polite">Ready.</div>
+        <button type="button" id="status-open-btn" class="compact-btn status-open-btn" hidden>Open Folder</button>
+      </div>
+    </footer>
+  </main>
+  <script src="downloader.js"></script>
+</body>
+</html>

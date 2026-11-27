@@ -20,12 +20,16 @@ fn restore_window(main: &tauri::WebviewWindow) {
     // makes every later call a no-op, so user resizes are never fought.
     crate::geometry::fit_window_to_work_area(main);
     let _ = main.set_focus();
+    crate::wake_watchdog();
+    #[cfg(target_os = "linux")]
+    let _ = main.eval("if (window.__resumeIfNeeded) window.__resumeIfNeeded();");
 }
 
 /// Hide-to-tray with the mandatory pause-first (deterministic ordering).
 fn hide_window(main: &tauri::WebviewWindow) {
     let _ = main.eval("if (window.__onWindowHidden) window.__onWindowHidden();");
     let _ = main.hide();
+    crate::wake_watchdog();
 }
 
 /// Evaluate a full JS statement on the page unless we are on the Messages/DM
@@ -107,6 +111,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     // ── App Settings & About ──
+    let open_downloader = MenuItemBuilder::with_id("open_downloader", "⬇️ Media Downloader").build(app)?;
     let copy_url = MenuItemBuilder::with_id("copy_url", "📋 Copy Current Video Link").build(app)?;
     let capture_frame = MenuItemBuilder::with_id("capture_frame", "📸 Capture Video Frame (S)").build(app)?;
     let autostart = MenuItemBuilder::with_id("autostart", "🚀 Launch on Startup").build(app)?;
@@ -122,6 +127,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         .item(&sep0)
         .item(&feeds_submenu)
         .item(&playback_submenu)
+        .item(&open_downloader)
         .item(&copy_url)
         .item(&capture_frame)
         .item(&autostart)
@@ -207,7 +213,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(main) = app.get_webview_window("main") {
                     eval_feed_helper(
                         &main,
-                        "window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });",
+                        "if (window.scrollFeedBy) window.scrollFeedBy(window.innerHeight * 0.85); else window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });",
                     );
                 }
             }
@@ -215,7 +221,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(main) = app.get_webview_window("main") {
                     eval_feed_helper(
                         &main,
-                        "window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });",
+                        "if (window.scrollFeedBy) window.scrollFeedBy(-window.innerHeight * 0.85); else window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });",
                     );
                 }
             }
@@ -266,6 +272,21 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                         ),
                     );
                 }
+            }
+            "open_downloader" => {
+                let current_post_url = app
+                    .get_webview_window("main")
+                    .and_then(|m| m.url().ok())
+                    .map(|u| u.to_string())
+                    .filter(|u| u.contains("/video/") || u.contains("/photo/"));
+                let _ = crate::open_downloader_window_internal(
+                    app,
+                    current_post_url,
+                    None,
+                    None,
+                    None,
+                    None,
+                );
             }
             "copy_url" => {
                 if let Some(main) = app.get_webview_window("main") {
@@ -425,6 +446,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             "quit" => {
+                #[cfg(windows)]
+                crate::audio::sync(crate::audio::Mode::Release);
                 app.exit(0);
             }
             _ => {}

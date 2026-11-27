@@ -43,6 +43,7 @@ yarn-error.log*
 # Backup & personal developer notes
 /backup/
 /.freebuff/
+/mds/
 
 # Environment variables
 .env
